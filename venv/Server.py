@@ -9,6 +9,7 @@ import tempfile
 import time
 from typing import Dict
 from argparse import ArgumentParser, Namespace
+import Channel
 
 class Server:
     def __init__(self, args: Namespace, ports=6667, password="", channel="test", ipv6="::1[]") -> None:
