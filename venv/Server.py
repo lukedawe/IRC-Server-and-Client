@@ -7,10 +7,9 @@ import string
 import sys
 import tempfile
 import time
-from argparse import Namespace
 
 
 class Server:
-    def __init__(self, args: Namespace) -> None:
-        self.ports = args.ports
-        self.password = args.password
+    def __init__(self, ports, password, channel):
+        self.ports = ports
+        self.password = password
