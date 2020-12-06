@@ -1,12 +1,13 @@
 import re
+import socket
+from typing import Dict
+
+Socket = socket.socket
+import Channel
 
 
 class Client:
-    __linesep_regexp = re.compile(rb"\r?\n")
-    # The RFC limit for nicknames is 9 characters, but what the heck.
-    __valid_nickname_regexp = re.compile(
-        rb"^[][\`_^{|}A-Za-z][][\`_^{|}A-Za-z0-9-]{0,50}$"
-    )
-    __valid_channelname_regexp = re.compile(
-        rb"^[&#+!][^\x00\x07\x0a\x0d ,:]{0,50}$"
-    )
+    def __init__(self, server: "Server", socket: Socket) -> None:
+        self.server = server
+        self.socket = socket
+        self.channels: Dict[bytes, Channel] = {}

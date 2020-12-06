@@ -10,6 +10,7 @@ import time
 from typing import Dict
 from argparse import ArgumentParser, Namespace
 import Channel
+import Client
 
 Socket = socket.socket
 
