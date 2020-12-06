@@ -10,6 +10,7 @@ import time
 
 
 class Server:
-    def __init__(self, ports, password, channel):
+    def __init__(self, ports, password, channel, ipv6):
         self.ports = ports
         self.password = password
+        self.ipv6 = ipv6
