@@ -8,23 +8,28 @@ import sys
 import tempfile
 import time
 from typing import Dict
-from argparse import ArgumentParser, Namespace
+from argparse import ArgumentParser
 import Channel
 import Client
+import hashlib
 
 Socket = socket.socket
 
 
 class Server:
-    def __init__(self, args: Namespace, ports=6667, password="", channel="test", ipv6="::1[]") -> None:
+    def __init__(self, ports=6667, password="", channel="test", ipv6="::1[]", listen="") -> None:
         self.ports = ports
-        self.password = password
         self.ipv6 = ipv6
 
-        if self.ipv6 and args.listen:
-            self.address = socket.getaddrinfo(args.listen, None, proto=socket.IPPROTO_TCP)[0][4][0]
-        elif args.listen:
-            self.address = socket.gethostbyname(args.listen)
+        if not password:
+            self.password = hashlib.sha224(b"password").hexdigest()
+        else:
+            self.password = password
+
+        if self.ipv6:
+            self.address = socket.getaddrinfo(listen, None, proto=socket.IPPROTO_TCP)
+        elif listen:
+            self.address = socket.gethostbyname(listen)
         else:
             self.address = ""
             server_name_limit = 63  # From the RFC.
