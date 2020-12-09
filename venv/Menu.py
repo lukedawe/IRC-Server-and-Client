@@ -1,8 +1,9 @@
 # Netflix type system demo - FakeFlix
 import csv
 import hashlib
+import ipaddress
 import sys
-import Server
+from Server import Server
 
 
 def main():
@@ -10,10 +11,10 @@ def main():
 
 
 def menu():
-
     choice = input("""
-                      A: Create Server
+                      A: Create server
                       B: Add client
+                      C: Test server
                       Q: Quit
 
                       Please enter your choice: """)
@@ -22,6 +23,8 @@ def menu():
         createServer()
     elif choice == "B" or choice == "b":
         addClient()
+    elif choice == "C" or choice == "c":
+        testServer()
     elif choice == "Q" or choice == "q":
         sys.exit
     else:
@@ -35,12 +38,18 @@ def createServer():
     password = input("Please enter the password for the server")
     password = hashlib.sha224(str.encode(password)).hexdigest()
     channel = input("Please enter the channel for the server")
-    ipv6 = input("Please enter the IP address for the server")
+    address = input("Please enter the IP address for the server")
+    ipv6 = ipaddress.ip_address(address)
     listen = input("Please enter the listen for the server")
 
-    server = Server(port,password,channel,ipv6,listen)
+    server = Server(port, password, channel, ipv6, listen)
+
 
 def addClient():
+    pass
+
+
+def testServer():
     pass
 
 

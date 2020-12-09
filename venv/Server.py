@@ -1,3 +1,4 @@
+import ipaddress
 import logging
 import os
 import re
@@ -17,7 +18,8 @@ Socket = socket.socket
 
 
 class Server:
-    def __init__(self, ports=6667, password="", channel="test", ipv6="::1[]", listen="") -> None:
+    def __init__(self, ports=6667, password="", channel="test", ipv6=ipaddress.ip_address('2001:db8::'),
+                 listen="") -> None:
         self.ports = ports
         self.ipv6 = ipv6
 
