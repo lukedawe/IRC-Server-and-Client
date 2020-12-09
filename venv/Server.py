@@ -11,7 +11,7 @@ import threading
 import time
 from typing import Dict
 from argparse import ArgumentParser
-import Channel
+from Channel import Channel
 import Client
 import hashlib
 
@@ -36,5 +36,5 @@ class Server:
             self.name = socket.getfqdn()[:server_name_limit].encode()
             print("Socket = " + socket.getfqdn())
 
-    def newChannel(self):
-        thread = threading.Thread(target=Channel, args=(1,))
+        self.channels: Dict[bytes, Channel] = {}  # key: irc_lower(channelname)
+        self.clients: Dict[Socket, Client] = {}
