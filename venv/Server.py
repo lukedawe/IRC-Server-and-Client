@@ -38,3 +38,10 @@ class Server:
 
         self.channels: Dict[bytes, Channel] = {}  # key: irc_lower(channelname)
         self.clients: Dict[Socket, Client] = {}
+
+    def addChannel(self):
+        channel = Channel()
+        newThread = channel.thread_id
+
+    def initialiseServer(self):
+        pass

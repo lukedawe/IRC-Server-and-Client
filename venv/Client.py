@@ -13,3 +13,5 @@ class Client:
         if self.server.ipv6:
             host, port = socket.getpeername()
 
+    def sendMessage(self, message):
+        pass
