@@ -7,6 +7,7 @@ import socket
 import string
 import sys
 import tempfile
+import threading
 import time
 from typing import Dict
 from argparse import ArgumentParser
@@ -35,5 +36,5 @@ class Server:
             self.name = socket.getfqdn()[:server_name_limit].encode()
             print("Socket = " + socket.getfqdn())
 
-    def createChannel(self):
-        pass
+    def newChannel(self):
+        thread = threading.Thread(target=Channel, args=(1,))
