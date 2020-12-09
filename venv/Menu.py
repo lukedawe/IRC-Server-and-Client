@@ -39,7 +39,11 @@ def createServer():
     password = hashlib.sha224(str.encode(password)).hexdigest()
     channel = input("Please enter the channel for the server")
     address = input("Please enter the IP address for the server")
-    ipv6 = ipaddress.ip_address(address)
+    try:
+        ipv6 = ipaddress.ip_address(address)
+    except:
+        ipv6 = ""
+
     listen = input("Please enter the listen for the server")
 
     server = Server(port, password, channel, ipv6, listen)

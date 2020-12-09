@@ -18,7 +18,7 @@ Socket = socket.socket
 
 
 class Server:
-    def __init__(self, ports=6667, password="", channel="test", ipv6=ipaddress.ip_address('2001:db8::'),
+    def __init__(self, ports=6667, password="", channel="test", ipv6=ipaddress.ip_address('::1'),
                  listen="") -> None:
         self.ports = ports
         self.ipv6 = ipv6
@@ -30,12 +30,10 @@ class Server:
 
         if self.ipv6:
             self.address = socket.getaddrinfo(listen, None, proto=socket.IPPROTO_TCP)
-        elif listen:
-            self.address = socket.gethostbyname(listen)
         else:
-            self.address = ""
             server_name_limit = 63  # From the RFC.
-            self.name = socket.getfqdn(self.address)[:server_name_limit].encode()
+            self.name = socket.getfqdn()[:server_name_limit].encode()
+            print("Socket = " + socket.getfqdn())
 
-        self.channels: Dict[bytes, Channel] = {}  # key: irc_lower(channelname)
-        self.clients: Dict[Socket, Client] = {}
+    def createChannel(self):
+        pass
