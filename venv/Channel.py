@@ -3,6 +3,7 @@ from typing import Any, Collection, Dict, List, Optional, Sequence, Set
 import Server
 from Client import Client
 
+
 class Channel:
     def __init__(self, server: "Server", name: bytes) -> None:
         self.server = server
