@@ -4,7 +4,9 @@ import Channel
 
 Socket = socket.socket
 
+
 class Client:
+    # https://github.com/jrosdahl/miniircd/blob/master/miniircd line 114
     def __init__(self, server: "Server", socket: Socket):
         self.server = server
         self.socket = socket

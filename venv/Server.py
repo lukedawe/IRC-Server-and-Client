@@ -19,7 +19,8 @@ Socket = socket.socket
 
 
 class Server:
-    def __init__(self, ports=6667, password="", channel="test", ipv6=ipaddress.ip_address('::1'),
+    # https://github.com/jrosdahl/miniircd/blob/master/miniircd line 789
+    def __init__(self, ports=[6667], password="", channel="test", ipv6=ipaddress.ip_address('::1'),
                  listen="") -> None:
         self.ports = ports
         self.ipv6 = ipv6
@@ -41,7 +42,7 @@ class Server:
 
     def addChannel(self):
         channel = Channel()
-        newThread = channel.thread_id
+        newThread = channel.threadID
 
     def initialiseServer(self):
         pass
