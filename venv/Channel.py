@@ -9,8 +9,11 @@ class Channel:
     def __init__(self, server: "Server", name: bytes) -> None:
         self.server = server
         self.name = name
-        self.members: Set["Client"] = set()
+        self.members = []
         self.threadID = threading.get_ident()
 
-    def add_member(self, client: "Client") -> None:
-        self.members.add(client)
+    def addMember(self, client) -> None:
+        self.members.append(client)
+
+    def removeClient(self, client):
+        pass

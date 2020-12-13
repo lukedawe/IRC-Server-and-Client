@@ -1,19 +1,10 @@
 import ipaddress
-import logging
-import os
-import re
-import select
 import socket
-import string
-import sys
-import tempfile
-import threading
-import time
 from typing import Dict
-from argparse import ArgumentParser
 from Channel import Channel
 import Client
 import hashlib
+import irc
 
 Socket = socket.socket
 
@@ -39,10 +30,12 @@ class Server:
 
         self.channels: Dict[bytes, Channel] = {}  # key: irc_lower(channelname)
         self.clients: Dict[Socket, Client] = {}
+        self.nicknames: Dict[bytes, Client] = {}  # key: irc_lower(nickname)
 
-    def addChannel(self):
+    def addChannel(self, name):
         channel = Channel()
         newThread = channel.threadID
+        self.channels = {name: channel}
 
     def initialiseServer(self):
-        pass
+        self.addChannel("test")
