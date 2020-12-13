@@ -20,8 +20,8 @@ Socket = socket.socket
 
 class Server:
     # https://github.com/jrosdahl/miniircd/blob/master/miniircd line 789
-    def __init__(self, ports=[6667], password="", channel="test", ipv6=ipaddress.ip_address('::1'),
-                 listen="") -> None:
+    def __init__(self, ports=[], password="", channel="test", ipv6=ipaddress.ip_address('::1'),
+                 listen=6667) -> None:
         self.ports = ports
         self.ipv6 = ipv6
 
