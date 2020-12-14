@@ -4,9 +4,11 @@ from typing import Dict
 from Channel import Channel
 import Client
 import hashlib
+import select
 import irc
 
 Socket = socket.socket
+HEADER_LENGTH = 10
 
 
 class Server:
@@ -15,6 +17,12 @@ class Server:
                  listen=6667) -> None:
         self.ports = ports
         self.ipv6 = ipv6
+        self.serverSocket = Socket
+        # self.serverSocket.listen()
+
+        # this means that you can reuse addresses for reconnection
+        self.serverSocket.setsockopt((self.serverSocket.SOL_SOCKET, self.Socket.SO_REUSEADDR, 1))
+        self.serverSocket.bind(self.ipv6, self.ports)
 
         if not password:
             self.password = hashlib.sha224(b"password").hexdigest()
@@ -22,20 +30,27 @@ class Server:
             self.password = password
 
         if self.ipv6:
-            self.address = socket.getaddrinfo(listen, None, proto=socket.IPPROTO_TCP)
+            self.address = self.serverSocket.getaddrinfo(listen, None, proto=self.serverSocket.IPPROTO_TCP)
         else:
-            server_name_limit = 63  # From the RFC.
-            self.name = socket.getfqdn()[:server_name_limit].encode()
+            self.ipv6 = "[::1]"
+            server_name_limit = 63  # This is from RFC.
+            self.name = self.serverSocket.getfqdn()[:server_name_limit].encode()
             print("Socket = " + socket.getfqdn())
 
         self.channels: Dict[bytes, Channel] = {}  # key: irc_lower(channelname)
-        self.clients: Dict[Socket, Client] = {}
+        self.client: Dict[Socket, Client] = {}
         self.nicknames: Dict[bytes, Client] = {}  # key: irc_lower(nickname)
+        self.threads: Dict[bytes, Channel] = {}
 
-    def addChannel(self, name):
+        self.initialiseServer()
+
+    def addChannel(self, name="test"):
         channel = Channel()
         newThread = channel.threadID
         self.channels = {name: channel}
 
     def initialiseServer(self):
         self.addChannel("test")
+
+    def removeClient(self):
+        pass
