@@ -44,8 +44,8 @@ class Server:
 
         self.initialiseServer()
 
-    def addChannel(self, name="test"):
-        channel = Channel()
+    def addChannel(self, name="test") -> None:
+        channel = Channel
         newThread = channel.threadID
         self.channels = {name: channel}
 
@@ -53,4 +53,7 @@ class Server:
         self.addChannel("test")
 
     def removeClient(self):
+        pass
+
+    def distributeMessage(self):
         pass
