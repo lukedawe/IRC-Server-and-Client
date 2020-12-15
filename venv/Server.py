@@ -58,3 +58,6 @@ class Server:
 
     def distributeMessage(self):
         pass
+
+    def recieveMessage(self):
+        pass
