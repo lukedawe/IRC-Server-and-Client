@@ -22,7 +22,7 @@ class Server:
 
         # this means that you can reuse addresses for reconnection
         # self.serverSocket.setsockopt((Socket.SOL_SOCKET, Socket.SO_REUSEADDR, 1))
-        self.serverSocket.bind(Socket, bytes(self.ports[0]))
+        self.serverSocket.bind((Socket, bytes(self.ports[0])))
 
         """
         if not password:
