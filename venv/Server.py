@@ -48,16 +48,17 @@ class Server:
         # self.threads: Dict[bytes, Channel] = {}
 
         self.initialiseServer()
-        Channel.refreshChannel(self)
 
-    def addChannel(self, name="test") -> None:
+    def addChannel(self, name="test") -> Channel:
         channel = Channel(self, name, self.serverSocket)
         newThread = channel.threadID
         name = "#" + name  # RCD channel names have to start with a hashtag
         self.channels = {name: channel}
+        return channel
 
     def initialiseServer(self):
-        self.addChannel("test")
+        channel1 = self.addChannel("test")
+        channel1.refreshChannel(self)
         for port in self.ports:
             s = socket.socket(
                 socket.AF_INET6 if self.ipv6 else socket.AF_INET,
