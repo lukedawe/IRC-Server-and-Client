@@ -47,6 +47,7 @@ class Server:
     def addChannel(self, name="test") -> None:
         channel = Channel
         newThread = channel.threadID
+        name = "#" + name  # RCD channel names have to start with a hashtag
         self.channels = {name: channel}
 
     def initialiseServer(self):
