@@ -54,6 +54,7 @@ class Server:
         self.serverSocket.listen()
         # newThread = channel.threadID
         name = "#" + name  # RCD channel names have to start with a hashtag
+        name = name[0:63]
         self.channels = {name: channel}
         return channel
 
