@@ -1,6 +1,18 @@
 import socket
 import sys
+import random
 import time
+import string
+
+def random_line(fname):
+
+
+  #  line = open(fname,'r',encoding='cp850').read().splitlines("`")
+    line = random.choice(open(fname ,'r',encoding='cp850').readlines())
+    print(line)
+
+    return line
+
 
 server="chat.freenode.net"
 channel="##testchanneloneagz"
@@ -8,12 +20,18 @@ botnick="TestingBestingResting"
 text=""
 #
 irc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-irc.connect((server, 6667))
+try:
+    irc.connect((server, 6667))
+except socket.error:
+    print('Error connecting to IRC server')
+    sys.exit(1)
 irc.send(bytes("USER " + botnick + " " + botnick + " " + botnick + " " + botnick + "\n", "UTF-8"))
 time.sleep(1)
 irc.send(bytes("NICK " + botnick + "\n", "UTF-8"))
 time.sleep(1)
 irc.send(bytes("JOIN " + channel + "\n", "UTF-8"))  # join the chan
+
+
 
 while 1:
 
@@ -23,10 +41,20 @@ while 1:
         print("\n")
     except Exception:
         pass
+    t = time.localtime()
+    current_time = time.strftime("%H:%M:%S", t)
+
+
+
     if text.find(bytes('PING','UTF-8')) != -1:
         # Takes second element on Ping appends it to pong so it is correct to server
         irc.send(bytes('PONG ' + text.split()[1].decode("UTF-8")  + '\r\n', "UTF-8"))
 
-    if text.find(bytes(":!josh", 'UTF-8'))!= -1:
+    if text.find(bytes(":!hello", 'UTF-8'))!= -1:
+        irc.send(bytes("PRIVMSG joshy "+channel+" :Hello, the time is "+ current_time + "!\r\n",'UTF-8'))
 
-        irc.send(bytes("PRIVMSG "+channel+" :Yeah that guy is gay!\r\n",'UTF-8'))
+    if text.find(bytes(":!fact", 'UTF-8')) != -1:
+        a = random_line("facts.txt")
+        irc.sendall(bytes("PRIVMSG " + channel + " " + a + "\r\n", 'UTF-8'))
+
+
