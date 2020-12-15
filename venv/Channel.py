@@ -19,13 +19,19 @@ class Channel:
         self.threadID = threading.get_ident()
         self.serverSocket = serverSocket
         self.socketList = [serverSocket]
-        self.clientList = []
+        self.clientList = {}
 
     def addMember(self, client) -> None:
         self.members.append(client)
 
     def removeClient(self, client):
-        pass
+        print('Closed connection from: {}'.format(self.clientList[client]['msgLen'].decode('utf-8')))
+
+        # Remove from list for socket.socket()
+        self.socketList.remove(client)
+
+        # Remove from our list of users
+        del self.clientList[client]
 
     def receiveMessage(self, clientSocket):
         try:
@@ -35,7 +41,7 @@ class Channel:
                 return False
 
             messageLength = int(messageHeader.decode('utf-8').strip())
-            return {'header': messageHeader, 'data': clientSocket.recv(messageLength)}
+            return {'header': messageHeader, 'msgLen': clientSocket.recv(messageLength)}
 
         except:
             return False
@@ -57,6 +63,7 @@ class Channel:
 
                     # Client should send his name right away, receive it
                     user = self.receiveMessage(client_socket)
+                    print(user['msgLen'].decode('utf-8'))
 
                     # If False - client disconnected before he sent his name
                     if user is False:
@@ -68,7 +75,7 @@ class Channel:
                     # Also save username and username header
                     self.clientList[client_socket] = user
 
-                    print('Accepted new connection from {}:{}, username: {}'.format(*client_address, user['data'].decode('utf-8')))
+                    print('Accepted new connection from {}:{} username: {}'.format(client_address[0], client_address[1], user['msgLen'].decode('utf-8')))
 
                 # Else existing socket is sending a message
                 else:
@@ -78,21 +85,15 @@ class Channel:
 
                     # If False, client disconnected, cleanup
                     if message is False:
-                        print('Closed connection from: {}'.format(
-                            self.clientList[notified_socket]['data'].decode('utf-8')))
-
                         # Remove from list for socket.socket()
-                        self.socketList.removeClient(notified_socket)
-
-                        # Remove from our list of users
-                        del self.clientList[notified_socket]
+                        self.removeClient(notified_socket)
 
                         continue
 
                     # Get user by notified socket, so we will know who sent the message
                     user = self.clientList[notified_socket]
 
-                    print(f'Received message from {user["data"].decode("utf-8")}: {message["data"].decode("utf-8")}')
+                    print(f'Received message from {user["msgLen"].decode("utf-8")}: {message["msgLen"].decode("utf-8")}')
 
                     # Iterate over connected clients and broadcast message
                     for client_socket in self.clientList:
@@ -101,7 +102,7 @@ class Channel:
                         if client_socket != notified_socket:
                             # Send user and message (both with their headers)
                             # We are reusing here message header sent by sender, and saved username header send by user when he connected
-                            client_socket.send(user['header'] + user['data'] + message['header'] + message['data'])
+                            client_socket.send(user['header'] + user['msgLen'] + message['header'] + message['msgLen'])
 
             # It's not really necessary to have this, but will handle some socket exceptions just in case
             for notified_socket in exception_sockets:

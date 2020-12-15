@@ -18,7 +18,7 @@ class Server:
         self.ports = ports
         self.ipv6 = ipv6
         self.socketList = []
-        self.serverSocket = Socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.serverSocket = Socket(family=socket.AF_INET6)
 
         # self.listen = listen
         # self.serverSocket.listen()
@@ -51,14 +51,25 @@ class Server:
 
     def addChannel(self, name="test") -> Channel:
         channel = Channel(self, name, self.serverSocket)
-        newThread = channel.threadID
+        self.serverSocket.listen()
+        # newThread = channel.threadID
         name = "#" + name  # RCD channel names have to start with a hashtag
         self.channels = {name: channel}
         return channel
 
     def initialiseServer(self):
+        # address = socket.getaddrinfo(str(self.ipv6), self.ports[0], proto=socket.IPPROTO_TCP)[0][4][0]
+        # address = [addr for addr in socket.getaddrinfo(self.ipv6, None) if socket.AF_INET6 == addr[0]]
+        ipv4 = '127.0.0.1'
+
+        self.serverSocket.bind((str(self.ipv6), self.ports[0]))
+        self.serverSocket.listen()
+
+        print(f'Listening for connections on {self.ipv6}:{self.ports[0]}...')
+
         channel1 = self.addChannel("test")
         channel1.refreshChannel()
+        """
         for port in self.ports:
             s = socket.socket(
                 socket.AF_INET6 if self.ipv6 else socket.AF_INET,
@@ -69,7 +80,7 @@ class Server:
             s.listen(5)
             self.socketList.append(s)
 
-        """
+
         self.serverSocket.bind((Socket, bytes(self.ports[0])))
         self.serverSocket.listen()
         """

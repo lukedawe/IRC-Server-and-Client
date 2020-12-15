@@ -44,7 +44,7 @@ def createServer():
     except:
         ipv6 = ""
 
-    server = Server(port, password, channel, ipv6)
+    server = Server()
 
 
 def addClient():
