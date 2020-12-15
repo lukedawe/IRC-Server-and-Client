@@ -17,7 +17,7 @@ client_socket = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
 # Connect to a given ip and port
 client_socket.connect((IP, PORT))
 
-# Set connection to non-blocking state, so .recv() call won;t block, just return some exception we'll handle
+# Set connection to non-blocking state, so .recv() call won't block, just return some exception we'll handle
 client_socket.setblocking(False)
 
 # Prepare username and header and send them

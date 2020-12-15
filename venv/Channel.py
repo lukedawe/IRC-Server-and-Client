@@ -63,7 +63,6 @@ class Channel:
 
                     # Client should send his name right away, receive it
                     user = self.receiveMessage(client_socket)
-                    print(user['msgData'].decode('utf-8'))
 
                     # If False - client disconnected before he sent his name
                     if user is False:
