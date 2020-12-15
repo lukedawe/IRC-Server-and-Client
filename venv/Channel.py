@@ -12,12 +12,14 @@ class Channel:
     # https://github.com/jrosdahl/miniircd/blob/master/miniircd line 47
     threadID = None
 
-    def __init__(self, server: "Server", name: bytes, serverSocket=[]) -> None:
+    def __init__(self, server: "Server", name: bytes, serverSocket) -> None:
         self.server = server
         self.name = name
         self.members = []
         self.threadID = threading.get_ident()
+        self.serverSocket = serverSocket
         self.socketList = [serverSocket]
+        self.clientList = []
 
     def addMember(self, client) -> None:
         self.members.append(client)
@@ -38,8 +40,7 @@ class Channel:
         except:
             return False
 
-        self.socketList = self.socketList
-
+    def refreshChannel(self):
         while True:
             read_sockets, _, exception_sockets = select.select(self.socketList, [], self.socketList)
 
@@ -47,15 +48,15 @@ class Channel:
             for notified_socket in read_sockets:
 
                 # If notified socket is a server socket - new connection, accept it
-                if notified_socket == server_socket:
+                if notified_socket == self.serverSocket:
 
                     # Accept new connection
                     # That gives us new socket - client socket, connected to this given client only, it's unique for that client
                     # The other returned object is ip/port set
-                    client_socket, client_address = server_socket.accept()
+                    client_socket, client_address = self.serverSocket.accept()
 
                     # Client should send his name right away, receive it
-                    user = receive_message(client_socket)
+                    user = self.receiveMessage(client_socket)
 
                     # If False - client disconnected before he sent his name
                     if user is False:
@@ -65,7 +66,7 @@ class Channel:
                     self.socketList.append(client_socket)
 
                     # Also save username and username header
-                    clients[client_socket] = user
+                    self.clientList[client_socket] = user
 
                     print('Accepted new connection from {}:{}, username: {}'.format(*client_address, user['data'].decode('utf-8')))
 
@@ -73,27 +74,28 @@ class Channel:
                 else:
 
                     # Receive message
-                    message = receive_message(notified_socket)
+                    message = self.receiveMessage(notified_socket)
 
                     # If False, client disconnected, cleanup
                     if message is False:
-                        print('Closed connection from: {}'.format(clients[notified_socket]['data'].decode('utf-8')))
+                        print('Closed connection from: {}'.format(
+                            self.clientList[notified_socket]['data'].decode('utf-8')))
 
                         # Remove from list for socket.socket()
                         self.socketList.removeClient(notified_socket)
 
                         # Remove from our list of users
-                        del clients[notified_socket]
+                        del self.clientList[notified_socket]
 
                         continue
 
                     # Get user by notified socket, so we will know who sent the message
-                    user = clients[notified_socket]
+                    user = self.clientList[notified_socket]
 
                     print(f'Received message from {user["data"].decode("utf-8")}: {message["data"].decode("utf-8")}')
 
                     # Iterate over connected clients and broadcast message
-                    for client_socket in clients:
+                    for client_socket in self.clientList:
 
                         # But don't sent it to sender
                         if client_socket != notified_socket:
@@ -107,7 +109,7 @@ class Channel:
                 self.socketList.removeClient(notified_socket)
 
                 # Remove from our list of users
-                del clients[notified_socket]
+                del self.clientList[notified_socket]
 
 
 # from https://github.com/jrosdahl/miniircd/blob/master/miniircd lines 1053-1060

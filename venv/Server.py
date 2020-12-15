@@ -1,10 +1,12 @@
 import ipaddress
 import socket
+import string
 from typing import Dict
 from Channel import Channel
 import Client
 import hashlib
 import select
+
 # import irc
 
 Socket = socket.socket
@@ -12,7 +14,7 @@ Socket = socket.socket
 
 class Server:
     # https://github.com/jrosdahl/miniircd/blob/master/miniircd line 789
-    def __init__(self, ports=[3000], password="", channel="test", ipv6=ipaddress.ip_address('::1')) -> None:
+    def __init__(self, ports=[1234], password="", channel="test", ipv6=ipaddress.ip_address('::1')) -> None:
         self.ports = ports
         self.ipv6 = ipv6
         self.socketList = []
@@ -30,8 +32,6 @@ class Server:
         else:
             self.password = password
    
-
-        
         if self.ipv6:
             self.address = socket.getaddrinfo(listen, None, proto=self.serverSocket.IPPROTO_TCP)
         else:
@@ -48,10 +48,10 @@ class Server:
         # self.threads: Dict[bytes, Channel] = {}
 
         self.initialiseServer()
-        Channel.receiveMessage()
+        Channel.refreshChannel(self)
 
     def addChannel(self, name="test") -> None:
-        channel = Channel
+        channel = Channel(self, name, self.serverSocket)
         newThread = channel.threadID
         name = "#" + name  # RCD channel names have to start with a hashtag
         self.channels = {name: channel}
@@ -76,5 +76,5 @@ class Server:
     def removeClient(self):
         pass
 
-    def distributeMessage(self):
-        pass
+    def addClient(self, channel: Channel, client: Client):
+        Channel.addMember(client)
