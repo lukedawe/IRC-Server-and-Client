@@ -6,23 +6,23 @@ import Client
 import hashlib
 import select
 import irc
-Socket = socket.socket()
+
+Socket = socket.socket
 HEADER_LENGTH = 10
 
 
 class Server:
     # https://github.com/jrosdahl/miniircd/blob/master/miniircd line 789
-    def __init__(self, ports=[3000], password="", channel="test", ipv6=ipaddress.ip_address('::1'),
-                 listen=6667) -> None:
+    def __init__(self, ports=[3000], password="", channel="test", ipv6=ipaddress.ip_address('::1')) -> None:
         self.ports = ports
         self.ipv6 = ipv6
-        self.serverSocket = Socket
-        self.listen = listen
+        self.serverSockets = []
+
+        # self.listen = listen
         # self.serverSocket.listen()
 
         # this means that you can reuse addresses for reconnection
         # self.serverSocket.setsockopt((Socket.SOL_SOCKET, Socket.SO_REUSEADDR, 1))
-        self.serverSocket.bind((Socket, bytes(self.ports[0])))
 
         """
         if not password:
@@ -30,20 +30,22 @@ class Server:
         else:
             self.password = password
    
+
         
         if self.ipv6:
-            self.address = self.serverSocket.getaddrinfo(listen, None, proto=self.serverSocket.IPPROTO_TCP)
+            self.address = socket.getaddrinfo(listen, None, proto=self.serverSocket.IPPROTO_TCP)
         else:
             self.ipv6 = "[::1]"
             server_name_limit = 63  # This is from RFC.
-            self.name = self.serverSocket.getfqdn()[:server_name_limit].encode()
+            self.name = socket.getfqdn()[:server_name_limit].encode()
             print("Socket = " + socket.getfqdn())
         """
 
+        self.socketList = [self.serverSocket]
         self.channels: Dict[bytes, Channel] = {}  # key: irc_lower(channelname)
-        self.client: Dict[Socket, Client] = {}
+        self.clients: Dict[Socket, Client] = {}
         self.nicknames: Dict[bytes, Client] = {}  # key: irc_lower(nickname)
-        self.threads: Dict[bytes, Channel] = {}
+        # self.threads: Dict[bytes, Channel] = {}
 
         self.initialiseServer()
 
@@ -55,6 +57,20 @@ class Server:
 
     def initialiseServer(self):
         self.addChannel("test")
+        for port in self.ports:
+            s = socket.socket(
+                socket.AF_INET6 if self.ipv6 else socket.AF_INET,
+                socket.SOCK_STREAM,
+            )
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            s.bind((self.ipv6, port))
+            s.listen(5)
+            self.serverSockets.append(s)
+
+        self.serverSockets = Socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.serverSocket.bind((Socket, bytes(self.ports[0])))
+        self.serverSocket.listen()
 
     def removeClient(self):
         pass
@@ -63,4 +79,15 @@ class Server:
         pass
 
     def recieveMessage(self):
-        pass
+        try:
+            message_header = client_socket.recv(HEADER_LENGTH)
+
+            if not len(message_header):
+                return False
+
+            message_length = int(message_header.decode('utf-8').strip())
+
+            return {'header': message_header, 'data': client_socket.recv(message_length)}
+
+        except:
+            return False

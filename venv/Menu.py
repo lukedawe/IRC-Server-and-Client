@@ -44,9 +44,7 @@ def createServer():
     except:
         ipv6 = ""
 
-    listen = input("Please enter the listen for the server")
-
-    server = Server(port, password, channel, ipv6, listen)
+    server = Server(port, password, channel, ipv6)
 
 
 def addClient():
