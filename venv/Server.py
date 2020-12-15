@@ -16,7 +16,8 @@ class Server:
     def __init__(self, ports=[3000], password="", channel="test", ipv6=ipaddress.ip_address('::1')) -> None:
         self.ports = ports
         self.ipv6 = ipv6
-        self.serverSockets = []
+        self.socketList = []
+        self.serverSocket = Socket(socket.AF_INET, socket.SOCK_STREAM)
 
         # self.listen = listen
         # self.serverSocket.listen()
@@ -65,12 +66,12 @@ class Server:
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind((self.ipv6, port))
             s.listen(5)
-            self.serverSockets.append(s)
+            self.socketList.append(s)
 
-        self.serverSockets = Socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        """
         self.serverSocket.bind((Socket, bytes(self.ports[0])))
         self.serverSocket.listen()
+        """
 
     def removeClient(self):
         pass
@@ -78,16 +79,15 @@ class Server:
     def distributeMessage(self):
         pass
 
-    def recieveMessage(self):
+    def recieveMessage(self, clientSocket):
         try:
-            message_header = client_socket.recv(HEADER_LENGTH)
+            messageHeader = clientSocket.recv(HEADER_LENGTH)
 
-            if not len(message_header):
+            if not len(messageHeader):
                 return False
 
-            message_length = int(message_header.decode('utf-8').strip())
-
-            return {'header': message_header, 'data': client_socket.recv(message_length)}
+            messageLength = int(messageHeader.decode('utf-8').strip())
+            return {'header': messageHeader, 'data': clientSocket.recv(messageLength)}
 
         except:
             return False
