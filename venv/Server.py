@@ -8,7 +8,6 @@ import select
 import irc
 
 Socket = socket.socket
-HEADER_LENGTH = 10
 
 
 class Server:
@@ -78,16 +77,3 @@ class Server:
 
     def distributeMessage(self):
         pass
-
-    def recieveMessage(self, clientSocket):
-        try:
-            messageHeader = clientSocket.recv(HEADER_LENGTH)
-
-            if not len(messageHeader):
-                return False
-
-            messageLength = int(messageHeader.decode('utf-8').strip())
-            return {'header': messageHeader, 'data': clientSocket.recv(messageLength)}
-
-        except:
-            return False

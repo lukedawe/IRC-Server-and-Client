@@ -3,6 +3,7 @@ from typing import Any, Collection, Dict, List, Optional, Sequence, Set
 import Server
 from Client import Client
 
+HEADER_LENGTH = 10
 
 class Channel:
     # https://github.com/jrosdahl/miniircd/blob/master/miniircd line 47
@@ -19,3 +20,16 @@ class Channel:
 
     def removeClient(self, client):
         pass
+
+    def recieveMessage(self, clientSocket):
+        try:
+            messageHeader = clientSocket.recv(HEADER_LENGTH)
+
+            if not len(messageHeader):
+                return False
+
+            messageLength = int(messageHeader.decode('utf-8').strip())
+            return {'header': messageHeader, 'data': clientSocket.recv(messageLength)}
+
+        except:
+            return False
