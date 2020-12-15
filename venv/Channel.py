@@ -1,7 +1,7 @@
 import string
 import threading
 from typing import Any, Collection, Dict, List, Optional, Sequence, Set
-import Server
+# import Server
 from Client import Client
 import select
 
@@ -67,8 +67,7 @@ class Channel:
                     # Also save username and username header
                     clients[client_socket] = user
 
-                    print('Accepted new connection from {}:{}, username: {}'.format(*client_address,
-                                                                                    user['data'].decode('utf-8')))
+                    print('Accepted new connection from {}:{}, username: {}'.format(*client_address, user['data'].decode('utf-8')))
 
                 # Else existing socket is sending a message
                 else:
@@ -81,7 +80,7 @@ class Channel:
                         print('Closed connection from: {}'.format(clients[notified_socket]['data'].decode('utf-8')))
 
                         # Remove from list for socket.socket()
-                        self.socketList.remove(notified_socket)
+                        self.socketList.removeClient(notified_socket)
 
                         # Remove from our list of users
                         del clients[notified_socket]
@@ -105,7 +104,7 @@ class Channel:
             # It's not really necessary to have this, but will handle some socket exceptions just in case
             for notified_socket in exception_sockets:
                 # Remove from list for socket.socket()
-                self.socketList.remove(notified_socket)
+                self.socketList.removeClient(notified_socket)
 
                 # Remove from our list of users
                 del clients[notified_socket]

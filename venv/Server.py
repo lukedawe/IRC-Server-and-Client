@@ -5,7 +5,7 @@ from Channel import Channel
 import Client
 import hashlib
 import select
-import irc
+# import irc
 
 Socket = socket.socket
 
@@ -48,6 +48,7 @@ class Server:
         # self.threads: Dict[bytes, Channel] = {}
 
         self.initialiseServer()
+        Channel.receiveMessage()
 
     def addChannel(self, name="test") -> None:
         channel = Channel
