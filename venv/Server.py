@@ -6,8 +6,7 @@ import Client
 import hashlib
 import select
 import irc
-
-Socket = socket.socket
+Socket = socket.socket()
 HEADER_LENGTH = 10
 
 
@@ -18,16 +17,19 @@ class Server:
         self.ports = ports
         self.ipv6 = ipv6
         self.serverSocket = Socket
+        self.listen = listen
         # self.serverSocket.listen()
 
         # this means that you can reuse addresses for reconnection
-        self.serverSocket.setsockopt((self.serverSocket.SOL_SOCKET, self.Socket.SO_REUSEADDR, 1))
-        self.serverSocket.bind(self.ipv6, self.ports)
+        # self.serverSocket.setsockopt((Socket.SOL_SOCKET, Socket.SO_REUSEADDR, 1))
+        self.serverSocket.bind(Socket, self.ports[0])
 
+        """
         if not password:
             self.password = hashlib.sha224(b"password").hexdigest()
         else:
             self.password = password
+        """
 
         if self.ipv6:
             self.address = self.serverSocket.getaddrinfo(listen, None, proto=self.serverSocket.IPPROTO_TCP)

@@ -6,6 +6,8 @@ from Client import Client
 
 class Channel:
     # https://github.com/jrosdahl/miniircd/blob/master/miniircd line 47
+    threadID = None
+
     def __init__(self, server: "Server", name: bytes) -> None:
         self.server = server
         self.name = name
