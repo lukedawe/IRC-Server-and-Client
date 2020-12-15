@@ -12,7 +12,7 @@ HEADER_LENGTH = 10
 
 class Server:
     # https://github.com/jrosdahl/miniircd/blob/master/miniircd line 789
-    def __init__(self, ports=[], password="", channel="test", ipv6=ipaddress.ip_address('::1'),
+    def __init__(self, ports=[3000], password="", channel="test", ipv6=ipaddress.ip_address('::1'),
                  listen=6667) -> None:
         self.ports = ports
         self.ipv6 = ipv6
@@ -22,15 +22,15 @@ class Server:
 
         # this means that you can reuse addresses for reconnection
         # self.serverSocket.setsockopt((Socket.SOL_SOCKET, Socket.SO_REUSEADDR, 1))
-        self.serverSocket.bind(Socket, self.ports[0])
+        self.serverSocket.bind(Socket, bytes(self.ports[0]))
 
         """
         if not password:
             self.password = hashlib.sha224(b"password").hexdigest()
         else:
             self.password = password
-        """
-
+   
+        
         if self.ipv6:
             self.address = self.serverSocket.getaddrinfo(listen, None, proto=self.serverSocket.IPPROTO_TCP)
         else:
@@ -38,6 +38,7 @@ class Server:
             server_name_limit = 63  # This is from RFC.
             self.name = self.serverSocket.getfqdn()[:server_name_limit].encode()
             print("Socket = " + socket.getfqdn())
+        """
 
         self.channels: Dict[bytes, Channel] = {}  # key: irc_lower(channelname)
         self.client: Dict[Socket, Client] = {}
