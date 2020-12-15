@@ -58,7 +58,7 @@ class Server:
 
     def initialiseServer(self):
         channel1 = self.addChannel("test")
-        channel1.refreshChannel(self)
+        channel1.refreshChannel()
         for port in self.ports:
             s = socket.socket(
                 socket.AF_INET6 if self.ipv6 else socket.AF_INET,
