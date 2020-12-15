@@ -31,13 +31,16 @@ irc.send(bytes("NICK " + botnick + "\n", "UTF-8"))
 time.sleep(1)
 irc.send(bytes("JOIN " + channel + "\n", "UTF-8"))  # join the chan
 
-
+parts = ""
 
 while 1:
 
     try:
         text = irc.recv(2040)
         print(text)
+        textclean = text.strip(str.encode('\n\r'))
+        parts = textclean.split('!')
+
         print("\n")
     except Exception:
         pass
@@ -51,10 +54,14 @@ while 1:
         irc.send(bytes('PONG ' + text.split()[1].decode("UTF-8")  + '\r\n', "UTF-8"))
 
     if text.find(bytes(":!hello", 'UTF-8'))!= -1:
-        irc.send(bytes("PRIVMSG joshy "+channel+" :Hello, the time is "+ current_time + "!\r\n",'UTF-8'))
+
+        irc.send(bytes("PRIVMSG "+channel+" :Hello, the time is "+ current_time + "!\r\n",'UTF-8'))
 
     if text.find(bytes(":!fact", 'UTF-8')) != -1:
-        a = random_line("facts.txt")
-        irc.sendall(bytes("PRIVMSG " + channel + " " + a + "\r\n", 'UTF-8'))
+
+        source = bytes(parts[0]).strip(bytes('!','UTF-8'))
+
+        irc.send(bytes("PRIVMSG"+ str(source) +" "+ channel + " :" + random_line("facts.txt") + "\r\n", 'UTF-8'))
+
 
 
