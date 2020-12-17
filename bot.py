@@ -8,7 +8,7 @@ import string
 # Create basic variables to access server
 server = "chat.freenode.net"
 channel = "##testchanneloneagz"
-botnick = "Gavin"
+botnick = "Testingresting2"
 text = ""
 
 
@@ -28,6 +28,7 @@ try:
 except socket.error:
     print('Error connecting to IRC server')
     sys.exit(1)
+
 irc.send(bytes("USER " + botnick + " " + botnick + " " + botnick + " " + botnick + "\n", "UTF-8"))
 time.sleep(1)
 irc.send(bytes("NICK " + botnick + "\n", "UTF-8"))
@@ -39,27 +40,38 @@ parts = ""
 # This code will...
 while 1:
     try:
-        text = irc.recv(2040)
+        text = irc.recv(2048).decode("UTF-8")
         print(text)
-        textclean = text.strip(str.encode('\n\r'))
-        parts = textclean.split('!')
+        ## Takes away special characters
+        text = text.strip(str.encode('\n\r'))
+
         print("\n")
 
     except Exception:
         pass
-    t = time.localtime()
-    current_time = time.strftime("%H:%M:%S", t)
 
-    if text.find(bytes('PING', 'UTF-8')) != -1:
-        # Takes second element on Ping appends it to pong so it is correct to server
-        irc.send(bytes('PONG ' + text.split()[1].decode("UTF-8") + '\r\n', "UTF-8"))
+    if text.find("PRIVMSG") != -1:
+        t = time.localtime()
+        current_time = time.strftime("%H:%M:%S", t)
+        name = text.split('!', 1)[0][1:]
+        message = text.split('PRIVMSG', 1)[1].split(':', 1)[1]
+        channel = text.split('PRIVMSG', 1)[1].split(' ', 1)[1].split(' ', 1)[0]
 
-    if text.find(bytes(":!hello", 'UTF-8')) != -1:
-        irc.send(bytes("PRIVMSG "+channel+" :Hello, the time is " + current_time + "!\r\n", 'UTF-8'))
+        print(channel)
+        print(text.split('PRIVMSG', 1)[1])
+        if text.find('PING') != -1:
+            # Takes second element on Ping appends it to pong so it is correct to server
+            irc.send(bytes('PONG ' + text.split()[1] + '\r\n', "UTF-8"))
 
-    if text.find(bytes(":!fact", 'UTF-8')) != -1:
-        source = bytes(parts[0]).strip(bytes('!','UTF-8'))
-        irc.send(bytes("PRIVMSG"+ str(source) +" "+ channel + " :" + random_line("facts.txt") + "\r\n", 'UTF-8'))
+        if text.find(":!hello") != -1:
+            irc.send(bytes("PRIVMSG "+channel+" :Hello, the time is " + current_time + "!\r\n", 'UTF-8'))
+
+        if text.find(":!fact") != -1:
+            print(message)
+            irc.send(bytes("PRIVMSG "+name+" :" + random_line("facts.txt") + "\r\n", 'UTF-8'))
+
+        if channel == botnick:
+            irc.send(bytes("PRIVMSG " + name + " :" + random_line("facts.txt") + "\r\n", 'UTF-8'))
 
 
 
