@@ -1,77 +1,100 @@
-# Import
+# Import required libraries: allows us to use built-in functions
 import socket
 import sys
 import random
 import time
-import string
 
 # Create basic variables to access server
 server = "chat.freenode.net"
 channel = "##testchanneloneagz"
-botnick = "Testingresting2"
+botnick = "Lo-BOT-omy"
 text = ""
 
 
 # This function will take a random line from the fact.txt file and return it.
+# It is required for the '!fact' command
 def random_line(fname):
     line = random.choice(open(fname, 'r', encoding='cp850').readlines())
-    print(line)
     return line
 
 
+# Create a socket instance. This facilitates a bots connection to the server
 irc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 
-# This code connects the bot to the server and checks for errors in case of failure.
-try:
-    irc.connect((server, 6667))
-except socket.error:
-    print('Error connecting to IRC server')
-    sys.exit(1)
-
-irc.send(bytes("USER " + botnick + " " + botnick + " " + botnick + " " + botnick + "\n", "UTF-8"))
-time.sleep(1)
-irc.send(bytes("NICK " + botnick + "\n", "UTF-8"))
-time.sleep(1)
-irc.send(bytes("JOIN " + channel + "\n", "UTF-8"))  # join the channel
-
-parts = ""
-
-# This code will...
-while 1:
+# Connects the bot to the server and checks for errors in case of failure.
+def connect_to_server():
     try:
-        text = irc.recv(2048).decode("UTF-8")
-        print(text)
-        ## Takes away special characters
-        text = text.strip(str.encode('\n\r'))
+        irc.connect((server, 6667))
+    except socket.error:
+        print('Error connecting to IRC server')
+        sys.exit(1)
 
-        print("\n")
+    # Join the desired server and channel with the desired nickname (botnick)
+    irc.send(bytes("USER " + botnick + " " + botnick + " " + botnick + " " + botnick + "\n", "UTF-8"))
+    time.sleep(1)
+    irc.send(bytes("NICK " + botnick + "\n", "UTF-8"))
+    time.sleep(1)
+    irc.send(bytes("JOIN " + channel + "\n", "UTF-8"))
 
-    except Exception:
-        pass
 
-    if text.find("PRIVMSG") != -1:
-        t = time.localtime()
-        current_time = time.strftime("%H:%M:%S", t)
-        name = text.split('!', 1)[0][1:]
-        message = text.split('PRIVMSG', 1)[1].split(':', 1)[1]
-        channel = text.split('PRIVMSG', 1)[1].split(' ', 1)[1].split(' ', 1)[0]
+# Main method
+def main():
+    connect_to_server()
+    # This code will run continuously
+    while 1:
+        # Constantly try to read information in from the socket
+        try:
+            text = irc.recv(2048).decode("UTF-8")
+            print(text)
+        except Exception:
+            pass
 
-        print(channel)
-        print(text.split('PRIVMSG', 1)[1])
-        if text.find('PING') != -1:
+        # If someone sends a message in the channel then take time (for !hello), get name of senders / relevant channel
+        if text.find("PRIVMSG") != -1:
+            t = time.localtime()
+            current_time = time.strftime("%H:%M:%S", t)
+            name = text.split('!', 1)[0][1:]
+            channel = text.split('PRIVMSG', 1)[1].split(' ', 1)[1].split(' ', 1)[0]
+
+            # PING/PONG to/from the server to check for timeouts
             # Takes second element on Ping appends it to pong so it is correct to server
-            irc.send(bytes('PONG ' + text.split()[1] + '\r\n', "UTF-8"))
+            if text.find('PING') != -1:
+                irc.send(bytes('PONG ' + text.split()[1] + '\r\n', "UTF-8"))
 
-        if text.find(":!hello") != -1:
-            irc.send(bytes("PRIVMSG "+channel+" :Hello, the time is " + current_time + "!\r\n", 'UTF-8'))
+            # Hello command - gives time
+            if text.find(":!hello") != -1:
+                irc.send(bytes("PRIVMSG " + channel + " :Hello, the time is " + current_time + "!\r\n", 'UTF-8'))
 
-        if text.find(":!fact") != -1:
-            print(message)
-            irc.send(bytes("PRIVMSG "+name+" :" + random_line("facts.txt") + "\r\n", 'UTF-8'))
+            # Slap command:
+            # Use 'NAMES' command to get names of all channel users. Sleep to cope with user spam
+            # Use what is returned by NAMES to create a list of active users on the channel (listOfNames)
+            # From this list, choose a random user and designate them the 'slapee'. Then slap them
+            if text.find(":!slap") != -1:
+                returnedFromCommand = irc.send(bytes('NAMES ' + channel + '\r\n', "UTF-8"))
+                time.sleep(1)
+                getNames = irc.recv(2048).decode("UTF-8")
+                listOfNames = getNames.split(channel, 1)[1].split(':', 1)[1].split('\r\n', 1)[0].split(' ')
+                slapee = random.choice(listOfNames)
 
-        if channel == botnick:
-            irc.send(bytes("PRIVMSG " + name + " :" + random_line("facts.txt") + "\r\n", 'UTF-8'))
+                # Special case where bot chooses to slap itself
+                if slapee == botnick:
+                    irc.send(bytes("PRIVMSG " + channel + " :Self harm is not a joke, but here goes...\r\n", 'UTF-8'))
+
+                irc.send(bytes("PRIVMSG " + channel + " :Slaps " + slapee + " around with a wet trout\r\n", 'UTF-8'))
+
+            # Fact command:
+            # If the user does '!fact' in the public channel, a fact will be private messaged to them.
+            # If the user sends a private message to the bot, the bot responds with a fact
+            if text.find(":!fact") != -1:
+                irc.send(bytes("PRIVMSG " + name + " :" + random_line("facts.txt") + "\r\n", 'UTF-8'))
+                continue
+            elif channel == botnick:
+                irc.send(bytes("PRIVMSG " + name + " :" + random_line("facts.txt") + "\r\n", 'UTF-8'))
 
 
+# This run the main method
+if __name__ == "__main__":
+    main()
 
+# Jesse wants this ---> message = text.split('PRIVMSG', 1)[1].split(':', 1)[1]
