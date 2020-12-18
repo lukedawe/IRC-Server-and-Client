@@ -6,7 +6,7 @@ import sys
 HEADER_LENGTH = 10
 
 IP = "::1"
-PORT = 1234
+PORT = 6667
 my_username = input("Username: ")
 
 # Create a socket
@@ -24,7 +24,7 @@ client_socket.setblocking(False)
 # We need to encode username to bytes, then count number of bytes and prepare header of fixed size, that we encode to bytes as well
 username = my_username.encode('utf-8')
 username_header = f"{len(username):<{HEADER_LENGTH}}".encode('utf-8')
-client_socket.send(username_header + username)
+client_socket.send(bytes("CAP LS 302" + "\n" + "NICK botnick" + "\n" + "USER d * 0", "UTF-8"))
 
 while True:
 
@@ -42,7 +42,7 @@ while True:
     try:
         # Now we want to loop over received messages (there might be more than one) and print them
         while True:
-
+            '''
             # Receive our "header" containing username length, it's size is defined and constant
             username_header = client_socket.recv(HEADER_LENGTH)
 
@@ -61,9 +61,10 @@ while True:
             message_header = client_socket.recv(HEADER_LENGTH)
             message_length = int(message_header.decode('utf-8').strip())
             message = client_socket.recv(message_length).decode('utf-8')
-
+'''
+            message = client_socket.recv(2048)
             # Print message
-            print(f'{username} > {message}')
+            print(f'{"SERVER"} > {message}')
 
     except IOError as e:
         # This is normal on non blocking connections - when there are no incoming data error is going to be raised

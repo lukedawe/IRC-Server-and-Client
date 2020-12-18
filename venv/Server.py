@@ -49,7 +49,8 @@ class Server:
         self.socketList = [self.serverSocket]
         self.channels: Dict[string, Channel] = {}  # key: irc_lower(channelname)
         self.clients: Dict[Socket, Client] = {}
-        self.nicknames: Dict[bytes, Client] = {}  # key: irc_lower(nickname)
+        self.usernames: Dict[string, Socket] = {}  # username connected to socket
+        self.nicknames: Dict[string, string] = {}  # nickname connected to username
         # self.threads: Dict[bytes, Channel] = {}
         self.clientList = {}
 
@@ -72,7 +73,7 @@ class Server:
         self.serverSocket.listen()
 
         print(f'Listening for connections on {self.ipv6}:{self.ports[0]}...')
-        channel1 = self.addChannel()
+        self.addChannel()
         self.refreshServer()
         """
         for port in self.ports:
@@ -100,12 +101,26 @@ class Server:
 
         # Client should send his name right away, receive it
         cap = self.reveiveMessageMk3(client_socket)
+        print(cap)
         user = self.reveiveMessageMk3(client_socket)
+        # print(user)
+
+        userinfo = cap.split()
+        nickname = userinfo[1]
+        username = userinfo[3]
+
+        self.usernames[username] = client_socket
+        self.nicknames[nickname] = username
+
+        print("nick: " + nickname)
+        print("username: " + username)
 
         if not user:
             return False
-
         # print("message data: " + user['msgData'].decode('utf-8'))
+        address = str(client_address[0])
+        port = str(client_address[1])
+        client_socket.bind((address, port))
 
         # Add accepted socket to select.select() list
         self.socketList.append(client_socket)
@@ -113,8 +128,16 @@ class Server:
         # Also save username and username header
         self.clientList[client_socket] = user
 
-        address = str(client_address[0]) + ":" + str(client_address[1])
+        textToSend = "001 " + nickname + " :Welcome, " + nickname + " to our shitty IRC server, ya filthy cunt"
+        textToSend = "CAP * LS :"
+        print(f'Sent Text: {textToSend}')
+        self.sendMessage(client_socket, textToSend)
 
+
+
+        '''
+        address = str(client_address[0]) + ":" + str(client_address[1])
+        
         # And add member
         self.addMember(client_socket, address)
 
@@ -126,7 +149,12 @@ class Server:
         print(f'Sent Text: {textToSend}')
 
         textToSend = textToSend.encode()
-        client_socket.send(textToSend)
+        client_socket.send(textToSend)#
+        '''
+
+        received = self.reveiveMessageMk3(client_socket)
+
+        print(received)
 
     def receiveMessage(self, clientSocket):
         try:
@@ -156,6 +184,15 @@ class Server:
         chunk = clientSocket.recv(2048).decode("UTF-8")
         return chunk
 
+    def sendMessage(self, tosocket, msg):
+        totalsent = 0
+        while totalsent < len(msg):
+            tosend = bytes(msg[totalsent:], "UTF-8")
+            sent = tosocket.send(tosend)
+            if sent == 0:
+                raise RuntimeError("socket connection broken")
+            totalsent = totalsent + sent
+
     def refreshServer(self):
         while True:
             read_sockets, _, exception_sockets = select.select(self.socketList, [], self.socketList)
@@ -172,7 +209,8 @@ class Server:
                 else:
 
                     # Receive message
-                    message = self.receiveMessageMk2(notified_socket)
+                    message = self.reveiveMessageMk3(notified_socket)
+                    print(message)
 
                     # If False, client disconnected, cleanup
                     if message is False:
