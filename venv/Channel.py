@@ -36,7 +36,7 @@ class Channel:
     def receiveMessage(self, clientSocket):
         try:
             messageHeader = clientSocket.recv(HEADER_LENGTH)
-
+            print(messageHeader)
             if not len(messageHeader):
                 return False
 
@@ -63,6 +63,9 @@ class Channel:
 
                     # Client should send his name right away, receive it
                     user = self.receiveMessage(client_socket)
+                    if not user:
+                        continue
+                    print(user['msgData'].decode('utf-8'))
 
                     # If False - client disconnected before he sent his name
                     if user is False:
@@ -75,9 +78,17 @@ class Channel:
                     self.clientList[client_socket] = user
 
                     address = str(client_address[0]) + ":" + str(client_address[1])
+
+                    # And add member
+                    self.addMember(client_socket, address)
+
                     print('Accepted new connection from {} username: {}'.format(address, user['msgData'].decode('utf-8')))
 
-                    self.addMember(client_socket, address)
+                    textToSend = ":" + user['msgData'].decode("utf-8") + "!~" + user['msgData'].decode("utf-8") + "@" + self.members[client_socket] + " JOIN " + str(self.name)
+                    print(f'Sent Text: {textToSend}')
+
+                    textToSend = textToSend.encode()
+                    client_socket.send(textToSend)
 
                 # Else existing socket is sending a message
                 else:
@@ -104,10 +115,11 @@ class Channel:
                         if client_socket != notified_socket:
                             # Send user and message (both with their headers)
                             # We are reusing here message header sent by sender, and saved username header send by user when he connected
-                            client_socket.send(user['header'] + user['msgData'] + message['header'] + message['msgData'])
-                            textToSend = ":" + user['msgData'].decode("utf-8") + "!~" + user['msgData'].decode("utf-8") + "@" + self.members[client_socket] + " PRIVMSG " + self.name + " :" + message['msgData'].decode("utf-8") # NEED TO ENCODE AGAIN TO SEND
-                            # client_socket.send(textToSend)
+                            # client_socket.send(user['header'] + user['msgData'] + message['header'] + message['msgData'])
+                            textToSend = ":" + user['msgData'].decode("utf-8") + "!" + user['msgData'].decode("utf-8") + "@" + self.members[client_socket] + " PRIVMSG " + str(self.name) + " :" + message['msgData'].decode("utf-8") # NEED TO ENCODE AGAIN TO SEND
                             print(f'Sent Text: {textToSend}')
+                            textToSend = textToSend.encode()
+                            client_socket.send(textToSend)
 
             # It's not really necessary to have this, but will handle some socket exceptions just in case
             for notified_socket in exception_sockets:

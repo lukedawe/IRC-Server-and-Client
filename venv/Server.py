@@ -70,7 +70,6 @@ class Server:
         self.serverSocket.listen()
 
         print(f'Listening for connections on {self.ipv6}:{self.ports[0]}...')
-
         channel1 = self.addChannel()
         channel1.refreshChannel()
         """
