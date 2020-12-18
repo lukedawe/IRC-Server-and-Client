@@ -60,7 +60,14 @@
       <option name="project" value="LOCAL" />
       <updated>1608242571790</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Almost completed bot need to tidy up and check with miniircd">
+      <created>1608255602896</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1608255602896</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -78,6 +85,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Formatted" />
     <MESSAGE value="Working direct message ad split" />
-    <option name="LAST_COMMIT_MESSAGE" value="Working direct message ad split" />
+    <MESSAGE value="Almost completed bot need to tidy up and check with miniircd" />
+    <option name="LAST_COMMIT_MESSAGE" value="Almost completed bot need to tidy up and check with miniircd" />
   </component>
 </project>
