@@ -15,14 +15,14 @@ class Channel:
     def __init__(self, server: "Server", name: bytes, serverSocket) -> None:
         self.server = server
         self.name = name
-        self.members = []
+        self.members = {}
         self.threadID = threading.get_ident()
         self.serverSocket = serverSocket
         self.socketList = [serverSocket]
         self.clientList = {}
 
-    def addMember(self, client) -> None:
-        self.members.append(client)
+    def addMember(self, client, clientaddress) -> None:
+        self.members[client] = clientaddress
 
     def removeClient(self, client):
         print('Closed connection from: {}'.format(self.clientList[client]['msgData'].decode('utf-8')))
@@ -74,7 +74,10 @@ class Channel:
                     # Also save username and username header
                     self.clientList[client_socket] = user
 
-                    print('Accepted new connection from {}:{} username: {}'.format(client_address[0], client_address[1], user['msgData'].decode('utf-8')))
+                    address = str(client_address[0]) + ":" + str(client_address[1])
+                    print('Accepted new connection from {} username: {}'.format(address, user['msgData'].decode('utf-8')))
+
+                    self.addMember(client_socket, address)
 
                 # Else existing socket is sending a message
                 else:
@@ -102,6 +105,9 @@ class Channel:
                             # Send user and message (both with their headers)
                             # We are reusing here message header sent by sender, and saved username header send by user when he connected
                             client_socket.send(user['header'] + user['msgData'] + message['header'] + message['msgData'])
+                            textToSend = ":" + user['msgData'].decode("utf-8") + "!~" + user['msgData'].decode("utf-8") + "@" + self.members[client_socket] + " PRIVMSG " + self.name + " :" + message['msgData'].decode("utf-8") # NEED TO ENCODE AGAIN TO SEND
+                            # client_socket.send(textToSend)
+                            print(f'Sent Text: {textToSend}')
 
             # It's not really necessary to have this, but will handle some socket exceptions just in case
             for notified_socket in exception_sockets:

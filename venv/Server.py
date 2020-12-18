@@ -14,7 +14,10 @@ Socket = socket.socket
 
 class Server:
     # https://github.com/jrosdahl/miniircd/blob/master/miniircd line 789
-    def __init__(self, ports=[1234], password="", channel="test", ipv6=ipaddress.ip_address('::1')) -> None:
+    def __init__(self, ports=None, password="", channel="test", ipv6=ipaddress.ip_address('::1')) -> None:
+        if ports is None:
+            ports = [1234]  # default port for server
+
         self.ports = ports
         self.ipv6 = ipv6
         self.socketList = []
@@ -24,7 +27,7 @@ class Server:
         # self.serverSocket.listen()
 
         # this means that you can reuse addresses for reconnection
-        # self.serverSocket.setsockopt((Socket.SOL_SOCKET, Socket.SO_REUSEADDR, 1))
+        self.serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
         """
         if not password:
@@ -42,7 +45,7 @@ class Server:
         """
 
         self.socketList = [self.serverSocket]
-        self.channels: Dict[bytes, Channel] = {}  # key: irc_lower(channelname)
+        self.channels: Dict[string, Channel] = {}  # key: irc_lower(channelname)
         self.clients: Dict[Socket, Client] = {}
         self.nicknames: Dict[bytes, Client] = {}  # key: irc_lower(nickname)
         # self.threads: Dict[bytes, Channel] = {}
@@ -50,12 +53,12 @@ class Server:
         self.initialiseServer()
 
     def addChannel(self, name="test") -> Channel:
+        name = "#" + name  # RCD channel names have to start with a hashtag
+        name = name[0:63]
         channel = Channel(self, name, self.serverSocket)
         self.serverSocket.listen()
         # newThread = channel.threadID
-        name = "#" + name  # RCD channel names have to start with a hashtag
-        name = name[0:63]
-        self.channels = {name: channel}
+        self.channels[name] = channel
         return channel
 
     def initialiseServer(self):
@@ -68,7 +71,7 @@ class Server:
 
         print(f'Listening for connections on {self.ipv6}:{self.ports[0]}...')
 
-        channel1 = self.addChannel("test")
+        channel1 = self.addChannel()
         channel1.refreshChannel()
         """
         for port in self.ports:
