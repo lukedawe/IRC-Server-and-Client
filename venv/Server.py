@@ -101,60 +101,65 @@ class Server:
 
         # Client should send his name right away, receive it
         cap = self.reveiveMessageMk3(client_socket)
-        print(cap)
         user = self.reveiveMessageMk3(client_socket)
-        # print(user)
 
-        userinfo = cap.split()
-        nickname = userinfo[1]
-        username = userinfo[3]
+        if not (cap and user):
+            return False
+        else:
 
-        self.usernames[username] = client_socket
-        self.nicknames[nickname] = username
+            userinfo = user.split()
+            nickname = userinfo[1]
+            username = userinfo[3]
 
-        print("nick: " + nickname)
-        print("username: " + username)
+            self.usernames[username] = client_socket
+            self.nicknames[nickname] = username
 
-        # print("message data: " + user['msgData'].decode('utf-8'))
-        address = str(client_address[0])
-        port = str(client_address[1])
-        print(port)
-        print("yes")
-        client_socket.bind((address, port))
+            print("nick: " + nickname)
+            print("username: " + username)
 
-        # Add accepted socket to select.select() list
-        self.socketList.append(client_socket)
+            # print("message data: " + user['msgData'].decode('utf-8'))
+            address = str(client_address[0])
+            port = int(client_address[1])
 
-        # Also save username and username header
-        self.clientList[client_socket] = user
+            print(port)
+            print(address)
 
-        textToSend = "001 " + nickname + " :Welcome, " + nickname + " to our shitty IRC server, ya filthy cunt"
-        textToSend = "CAP * LS :"
-        print(f'Sent Text: {textToSend}')
-        self.sendMessage(client_socket, textToSend)
+            client_socket.bind((address, port))
+            client_socket.listen()
 
+            # Add accepted socket to select.select() list
+            self.socketList.append(client_socket)
 
+            # Also save username and username header
+            self.clientList[client_socket] = user
 
-        '''
-        address = str(client_address[0]) + ":" + str(client_address[1])
-        
-        # And add member
-        self.addMember(client_socket, address)
+            textToSend = "001 " + nickname + " :Welcome, " + nickname + " to our shitty IRC server, ya filthy cunt"
+            textToSend = "CAP * LS :"
+            print(f'Sent Text: {textToSend}')
+            self.sendMessage(client_socket, textToSend)
 
-        print('Accepted new connection from {} username: {}'.format(address,
-                                                                    user['msgData'].decode('utf-8')))
+            '''
+            address = str(client_address[0]) + ":" + str(client_address[1])
+            
+            # And add member
+            self.addMember(client_socket, address)
+    
+            print('Accepted new connection from {} username: {}'.format(address,
+                                                                        user['msgData'].decode('utf-8')))
+    
+            textToSend = ":" + user['msgData'].decode("utf-8") + "!~" + user['msgData'].decode(
+                "utf-8") + "@" + self.members[client_socket] + " JOIN " + self.name
+            print(f'Sent Text: {textToSend}')
+    
+            textToSend = textToSend.encode()
+            client_socket.send(textToSend)#
+            '''
 
-        textToSend = ":" + user['msgData'].decode("utf-8") + "!~" + user['msgData'].decode(
-            "utf-8") + "@" + self.members[client_socket] + " JOIN " + self.name
-        print(f'Sent Text: {textToSend}')
+            received = self.reveiveMessageMk3(client_socket)
 
-        textToSend = textToSend.encode()
-        client_socket.send(textToSend)#
-        '''
+            print(received)
 
-        received = self.reveiveMessageMk3(client_socket)
-
-        print(received)
+            return True
 
     def receiveMessage(self, clientSocket):
         try:
@@ -173,7 +178,7 @@ class Server:
         chunks = []
         bytes_recd = 0
         while bytes_recd < MSGLEN:
-            chunk = clientSocket.recv(min(MSGLEN - bytes_recd, 2048))
+            chunk = clientSocket.recv(min(MSGLEN - bytes_recd, MSGLEN))
             if chunk == b'':
                 raise RuntimeError("socket connection broken")
             chunks.append(chunk)
@@ -181,8 +186,11 @@ class Server:
         return b''.join(chunks)
 
     def reveiveMessageMk3(self, clientSocket):
-        chunk = clientSocket.recv(2048).decode("UTF-8")
-        return chunk
+        chunk = clientSocket.recv(MSGLEN).decode("UTF-8")
+        if chunk:
+            return chunk
+        else:
+            return None
 
     def sendMessage(self, tosocket, msg):
         totalsent = 0
@@ -230,9 +238,9 @@ class Server:
 
                         # But don't sent it to sender
                         if client_socket != notified_socket:
-                            # Send user and message (both with their headers)
-                            # We are reusing here message header sent by sender, and saved username header send by user when he connected
-                            # client_socket.send(user['header'] + user['msgData'] + message['header'] + message['msgData'])
+                            # Send user and message (both with their headers) We are reusing here message header sent
+                            # by sender, and saved username header send by user when he connected client_socket.send(
+                            # user['header'] + user['msgData'] + message['header'] + message['msgData'])
                             textToSend = ":" + user['msgData'].decode("utf-8") + "!" + user['msgData'].decode(
                                 "utf-8") + "@" + self.members[client_socket] + " PRIVMSG " + str(self.name) + " :" + \
                                          message['msgData'].decode("utf-8")  # NEED TO ENCODE AGAIN TO SEND
