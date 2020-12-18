@@ -124,6 +124,7 @@ class Server:
             print(port)
             print(address)
 
+            # TODO we cannot bind the address and the port for some reason :(
             client_socket.bind((address, port))
             client_socket.listen()
 
