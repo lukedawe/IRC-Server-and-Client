@@ -115,11 +115,11 @@ class Server:
         print("nick: " + nickname)
         print("username: " + username)
 
-        if not user:
-            return False
         # print("message data: " + user['msgData'].decode('utf-8'))
         address = str(client_address[0])
         port = str(client_address[1])
+        print(port)
+        print("yes")
         client_socket.bind((address, port))
 
         # Add accepted socket to select.select() list
