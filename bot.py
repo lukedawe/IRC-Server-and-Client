@@ -54,9 +54,10 @@ def connect_to_server():
 
 def get_names():
     irc.send(bytes('NAMES ' + channel + '\r\n', "UTF-8"))
-    time.sleep(1)
     getnamelist = irc.recv(2048).decode("UTF-8")
-    return getnamelist.split(channel, 1)[1].split(':', 1)[1].split('\r\n', 1)[0].split(' ')
+    namelist = getnamelist.split(channel, 1)[1].split(':', 1)[1].split('\r\n', 1)[0].split(' ')
+    print (namelist)
+    return namelist
 
 
 def get_time():
@@ -116,6 +117,10 @@ def main():
                 continue
             elif chat == botnick:
                 irc.send(bytes("PRIVMSG " + name + " :" + random_line("facts.txt") + "\r\n", 'UTF-8'))
+
+            if message == '!users\r\n':
+               test = get_names()
+               irc.send(bytes("PRIVMSG " + chat + " :Users are " +" "  .join(test) + "\r\n", 'UTF-8'))
 
 
 # This run the main method
