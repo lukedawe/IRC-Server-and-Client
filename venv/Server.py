@@ -107,6 +107,7 @@ class Server:
         else:
 
             userinfo = user.split()
+            print(userinfo)
             nickname = userinfo[1]
             username = userinfo[3]
 
@@ -141,13 +142,13 @@ class Server:
             #  Network, <nick>[!<user>@<host>]"
 
             textToSend = nickname + " :Welcome to the to the something Network, " + nickname + "!" + nickname + "@" + \
-                         str(self.ports[0])
+                         str(self.ports[0]) + "\r\n"
             print(f'Sent Text: {textToSend}')
 
             self.sendMessage(client_socket, textToSend)
 
             # TODO now maybe we send this? "<client> :Your host is <servername>, running version <version>"
-            textToSend = nickname + " :Your host is <servername>, running version <version>"
+            textToSend = nickname + " :Your host is <servername>, running version <version> \r\n"
             print(f'Sent Text: {textToSend}')
 
             self.sendMessage(client_socket, textToSend)
@@ -156,13 +157,13 @@ class Server:
             #   <available channel modes> [<channel modes with a parameter>]"
 
             textToSend = nickname + "<servername> <version> <available user modes> <available channel modes> " \
-                                    "[<channel modes with a parameter>]"
+                                    "[<channel modes with a parameter>] \r\n"
             print(f'Sent Text: {textToSend}')
 
             self.sendMessage(client_socket, textToSend)
 
             # TODO now let's try this one...
-            textToSend = nickname + "<1-13 tokens> :are supported by this server"
+            textToSend = nickname + "<1-13 tokens> :are supported by this server \r\n"
             print(f'Sent Text: {textToSend}')
 
             self.sendMessage(client_socket, textToSend)
@@ -189,6 +190,7 @@ class Server:
             print(received)
 
             return True
+
 
     def receiveMessage(self, clientSocket):
         try:

@@ -5,16 +5,16 @@ import random
 import time
 
 # Create basic variables to access server
-#channel = "#test"
-#server = "fe80::7f63:edf1:bc43:9bb2"
-server = "chat.freenode.net"
-channel = "##testchanneloneagz"
+channel = "#test"
+server = "::1"
+#server = "chat.freenode.net"
+#channel = "##testchanneloneagz"
 
 botnick = "Ginger"
 
 # Create a socket instance. This facilitates a bots connection to the server
-#irc = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
-irc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+irc = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+# irc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 
 # This function will take a random line from the fact.txt file and return it.
@@ -30,16 +30,16 @@ def random_line(fname):
 # Connects the bot to the server and checks for errors in case of failure.
 def connect_to_server():
     try:
-        #irc.connect((server, 6667, 0, 0))
-        irc.connect((server, 6667))
+        irc.connect((server, 6667, 0, 0))
+        #irc.connect((server, 6667))
     except socket.error:
         print('Error connecting to IRC server')
         sys.exit(1)
 
     # Join the desired server and channel with the desired nickname (botnick)
-    irc.send(bytes("USER " + botnick + " " + botnick + " " + botnick + " " + botnick + "\n", "UTF-8"))
-    time.sleep(1)
     irc.send(bytes("NICK " + botnick + "\n", "UTF-8"))
+    time.sleep(1)
+    irc.send(bytes("USER " + botnick + " " + botnick + " " + botnick + " " + botnick + "\n", "UTF-8"))
     time.sleep(1)
     irc.send(bytes("JOIN " + channel + "\n", "UTF-8"))
 
