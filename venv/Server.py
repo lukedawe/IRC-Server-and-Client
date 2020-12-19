@@ -134,6 +134,9 @@ class Server:
             # Also save username and username header
             self.clientList[client_socket] = user
 
+            # The following is according to https://modern.ircdocs.horse/#rplwelcome-001
+            # hope that helps you :)
+
             # TODO I think we need to send the user this: "<client> :Welcome to the <networkname>
             #  Network, <nick>[!<user>@<host>]"
 
