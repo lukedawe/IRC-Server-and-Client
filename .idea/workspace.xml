@@ -112,7 +112,14 @@
       <option name="project" value="LOCAL" />
       <updated>1608398833760</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Added !users command">
+      <created>1608399589815</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1608399589815</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -134,6 +141,7 @@
     <MESSAGE value="fgg" />
     <MESSAGE value="Tidy up the code" />
     <MESSAGE value="Working with IPv6 and fixed minor commands bugs" />
-    <option name="LAST_COMMIT_MESSAGE" value="Working with IPv6 and fixed minor commands bugs" />
+    <MESSAGE value="Added !users command" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added !users command" />
   </component>
 </project>
