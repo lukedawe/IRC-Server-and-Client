@@ -5,25 +5,38 @@ import random
 import time
 
 # Create basic variables to access server
+
+#channel = "#test"
+#server = "irc.ipv6.freenode.net"
+
 server = "chat.freenode.net"
 channel = "##testchanneloneagz"
+
+
 botnick = "Ginger"
 
 # Create a socket instance. This facilitates a bots connection to the server
+
+#irc = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
 irc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
 
 # This function will take a random line from the fact.txt file and return it.
 # It is required for the '!fact' command
 
-
 def random_line(fname):
-    line = random.choice(open(fname, 'r', encoding='cp850').readlines())
-    return line
+    try:
+        line = random.choice(open(fname, 'r', encoding='cp850').readlines())
+        return line
 
-
+    except IOError:
+        return "File not found"
 # Connects the bot to the server and checks for errors in case of failure.
+
+
 def connect_to_server():
     try:
+        #irc.connect((server, 6667,0,0))
         irc.connect((server, 6667))
     except socket.error:
         print('Error connecting to IRC server')
@@ -73,19 +86,21 @@ def main():
             localtime = get_time()
             name = text.split('!', 1)[0][1:]
             chat = text.split('PRIVMSG', 1)[1].split(' ', 1)[1].split(' ', 1)[0]
-
+            message = text.split('PRIVMSG', 1)[1].split(':', 1)[1]
+            print(repr(message))
             # PING/PONG to/from the server to check for timeouts
             # Takes second element on Ping appends it to pong so it is correct to server
             if text.find('PING') != -1:
                 ping(text.split()[1])
 
             # Hello command - gives time
-            if text.find(":!hello") != -1:
+
+            if message == '!hello\r\n':
                 irc.send(bytes("PRIVMSG " + chat + " :Hello, the time is " + localtime + "!\r\n", 'UTF-8'))
 
             # Use 'NAMES' command to get names of all channel users. Sleep to cope with user spam
             # From this list, choose a random user and designate them the 'slapee'. Then slap them
-            if text.find(":!slap") != -1:
+            if message == '!slap\r\n':
                 slapee = random.choice(get_names())
                 print(get_names())
                 # Special case where bot chooses to slap itself
@@ -96,7 +111,7 @@ def main():
 
             # If the user does '!fact' in the public channel, a fact will be private messaged to them.
             # If the user sends a private message to the bot, the bot responds with a fact
-            if text.find(":!fact") != -1:
+            if message == '!fact\r\n':
                 irc.send(bytes("PRIVMSG " + name + " :" + random_line("facts.txt") + "\r\n", 'UTF-8'))
                 continue
             elif chat == botnick:

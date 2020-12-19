@@ -4,6 +4,7 @@
     <list default="true" id="f1be31b5-c8ef-4130-9be8-a27a3aa594f2" name="Default Changelist" comment="Formatted">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bot.py" beforeDir="false" afterPath="$PROJECT_DIR$/bot.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/facts.txt" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -98,7 +99,14 @@
       <option name="project" value="LOCAL" />
       <updated>1608301927773</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Tidy up the code">
+      <created>1608321228393</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1608321228393</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -118,6 +126,7 @@
     <MESSAGE value="Working direct message ad split" />
     <MESSAGE value="Almost completed bot need to tidy up and check with miniircd" />
     <MESSAGE value="fgg" />
-    <option name="LAST_COMMIT_MESSAGE" value="fgg" />
+    <MESSAGE value="Tidy up the code" />
+    <option name="LAST_COMMIT_MESSAGE" value="Tidy up the code" />
   </component>
 </project>
