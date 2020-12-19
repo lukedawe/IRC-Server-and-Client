@@ -53,7 +53,6 @@ class Server:
         self.nicknames: Dict[string, string] = {}  # nickname connected to username
         # self.threads: Dict[bytes, Channel] = {}
         self.clientList = {}
-
         self.initialiseServer()
 
     def addChannel(self, name="test") -> Channel:
@@ -97,8 +96,8 @@ class Server:
         # Accept new connection
         # That gives us new socket - client socket, connected to this given client only, it's unique for that client
         # The other returned object is ip/port set
-        client_socket, client_address = self.serverSocket.accept()
 
+        client_socket, client_address = self.serverSocket.accept()
         # Client should send his name right away, receive it
         cap = self.reveiveMessageMk3(client_socket)
         user = self.reveiveMessageMk3(client_socket)
@@ -124,9 +123,10 @@ class Server:
             print(port)
             print(address)
 
-            # TODO we cannot bind the address and the port for some reason :(
-            client_socket.bind((address, port))
-            client_socket.listen()
+            # OSError: [WinError 10022] An invalid argument was supplied
+            # commented out the binding as that seemed to be causing the issue
+            # client_socket.bind((address, port))
+            # also, miniircd does not try to bind the port when a new client connects
 
             # Add accepted socket to select.select() list
             self.socketList.append(client_socket)
@@ -134,9 +134,34 @@ class Server:
             # Also save username and username header
             self.clientList[client_socket] = user
 
-            textToSend = "001 " + nickname + " :Welcome, " + nickname + " to our shitty IRC server, ya filthy cunt"
-            textToSend = "CAP * LS :"
+            # TODO I think we need to send the user this: "<client> :Welcome to the <networkname>
+            #  Network, <nick>[!<user>@<host>]"
+
+            textToSend = nickname + " :Welcome to the to the something Network, " + nickname + "!" + nickname + "@" + \
+                         str(self.ports[0])
             print(f'Sent Text: {textToSend}')
+
+            self.sendMessage(client_socket, textToSend)
+
+            # TODO now maybe we send this? "<client> :Your host is <servername>, running version <version>"
+            textToSend = nickname + " :Your host is <servername>, running version <version>"
+            print(f'Sent Text: {textToSend}')
+
+            self.sendMessage(client_socket, textToSend)
+
+            # TODO now maybe we send this to the client?   "<client> <servername> <version> <available user modes>
+            #   <available channel modes> [<channel modes with a parameter>]"
+
+            textToSend = nickname + "<servername> <version> <available user modes> <available channel modes> " \
+                                    "[<channel modes with a parameter>]"
+            print(f'Sent Text: {textToSend}')
+
+            self.sendMessage(client_socket, textToSend)
+
+            # TODO now let's try this one...
+            textToSend = nickname + "<1-13 tokens> :are supported by this server"
+            print(f'Sent Text: {textToSend}')
+
             self.sendMessage(client_socket, textToSend)
 
             '''
@@ -242,6 +267,7 @@ class Server:
                             # Send user and message (both with their headers) We are reusing here message header sent
                             # by sender, and saved username header send by user when he connected client_socket.send(
                             # user['header'] + user['msgData'] + message['header'] + message['msgData'])
+
                             textToSend = ":" + user['msgData'].decode("utf-8") + "!" + user['msgData'].decode(
                                 "utf-8") + "@" + self.members[client_socket] + " PRIVMSG " + str(self.name) + " :" + \
                                          message['msgData'].decode("utf-8")  # NEED TO ENCODE AGAIN TO SEND
