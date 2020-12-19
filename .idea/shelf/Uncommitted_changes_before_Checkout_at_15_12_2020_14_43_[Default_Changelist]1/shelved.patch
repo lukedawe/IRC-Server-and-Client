@@ -1,0 +1,72 @@
+Index: bot.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import socket\r\nimport sys\r\nimport time\r\n\r\nserver=\"chat.freenode.net\"\r\nchannel=\"##testchanneloneagz\"\r\nbotnick=\"TestingBestingResting\"\r\ntext=\"\"\r\n#\r\nirc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)\r\nirc.connect((server, 6667))\r\nirc.send(bytes(\"USER \" + botnick + \" \" + botnick + \" \" + botnick + \" \" + botnick + \"\\n\", \"UTF-8\"))\r\ntime.sleep(1)\r\nirc.send(bytes(\"NICK \" + botnick + \"\\n\", \"UTF-8\"))\r\ntime.sleep(1)\r\nirc.send(bytes(\"JOIN \" + channel + \"\\n\", \"UTF-8\"))  # join the chan\r\n\r\nwhile 1:\r\n\r\n    try:\r\n        text = irc.recv(2040)\r\n        print(text)\r\n        print(\"\\n\")\r\n    except Exception:\r\n        pass\r\n    if text.find(bytes('PING','UTF-8')) != -1:\r\n        # Takes second element on Ping appends it to pong so it is correct to server\r\n        irc.send(bytes('PONG ' + text.split()[1].decode(\"UTF-8\")  + '\\r\\n', \"UTF-8\"))\r\n\r\n    if text.find(bytes(\":!josh\", 'UTF-8'))!= -1:\r\n\r\n        irc.send(bytes(\"PRIVMSG \"+channel+\" :Yeah that guy is gay!\\r\\n\",'UTF-8'))\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/bot.py b/bot.py
+--- a/bot.py	(revision 2818255a6136f944cb6b516ef7cac2eafb1d71f3)
++++ b/bot.py	(date 1608043415499)
+@@ -1,6 +1,18 @@
+ import socket
+ import sys
++import random
+ import time
++import string
++
++def random_line(fname):
++
++
++  #  line = open(fname,'r',encoding='cp850').read().splitlines("`")
++    line = random.choice(open(fname ,'r',encoding='cp850').readlines())
++    print(line)
++
++    return line
++
+ 
+ server="chat.freenode.net"
+ channel="##testchanneloneagz"
+@@ -8,13 +20,19 @@
+ text=""
+ #
+ irc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+-irc.connect((server, 6667))
++try:
++    irc.connect((server, 6667))
++except socket.error:
++    print('Error connecting to IRC server')
++    sys.exit(1)
+ irc.send(bytes("USER " + botnick + " " + botnick + " " + botnick + " " + botnick + "\n", "UTF-8"))
+ time.sleep(1)
+ irc.send(bytes("NICK " + botnick + "\n", "UTF-8"))
+ time.sleep(1)
+ irc.send(bytes("JOIN " + channel + "\n", "UTF-8"))  # join the chan
+ 
++
++
+ while 1:
+ 
+     try:
+@@ -23,10 +41,18 @@
+         print("\n")
+     except Exception:
+         pass
++    t = time.localtime()
++    current_time = time.strftime("%H:%M:%S", t)
++
++
++
+     if text.find(bytes('PING','UTF-8')) != -1:
+         # Takes second element on Ping appends it to pong so it is correct to server
+         irc.send(bytes('PONG ' + text.split()[1].decode("UTF-8")  + '\r\n', "UTF-8"))
+ 
+-    if text.find(bytes(":!josh", 'UTF-8'))!= -1:
++    if text.find(bytes(":!hello", 'UTF-8'))!= -1:
++        irc.send(bytes("PRIVMSG joshy "+channel+" :Hello, the time is "+ current_time + "!\r\n",'UTF-8'))
+ 
+-        irc.send(bytes("PRIVMSG "+channel+" :Yeah that guy is gay!\r\n",'UTF-8'))
++    if text.find(bytes(":!fact", 'UTF-8')) != -1:
++        a = random_line("facts.txt")
++        irc.sendall(bytes("PRIVMSG " + channel + " " + a + "\r\n", 'UTF-8'))
+\ No newline at end of file
