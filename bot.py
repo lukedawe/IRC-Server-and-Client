@@ -85,10 +85,6 @@ def main():
             chat = text.split('PRIVMSG', 1)[1].split(' ', 1)[1].split(' ', 1)[0]
             message = text.split('PRIVMSG', 1)[1].split(':', 1)[1]
             print(repr(message))
-            # PING/PONG to/from the server to check for timeouts
-            # Takes second element on Ping appends it to pong so it is correct to server
-            if text.find('PING') != -1:
-                ping(text.split()[1])
 
             # Hello command - gives time
             if message == '!hello\r\n':
@@ -117,12 +113,18 @@ def main():
                 test = get_names()
                 irc.send(bytes("PRIVMSG " + chat + " :Users are " + " ".join(test) + "\r\n", 'UTF-8'))
 
-        #If the someone leaves it will check how many people and in if it's one person it will leave
+        # PING/PONG to/from the server to check for timeouts
+        # Takes second element on Ping appends it to pong so it is correct to server
+        if text.find('PING') != -1:
+            ping(text.split()[1])
+
+        # If the someone leaves it will check how many people and in if it's one person it will leave
         if text.find("QUIT") != -1:
             if len(get_names()) == 1:
                 print("One boy left that means i leave ")
                 irc.send(bytes("QUIT Bye", "UTF-8"))
                 break
+
 
 # This run the main method
 if __name__ == "__main__":
