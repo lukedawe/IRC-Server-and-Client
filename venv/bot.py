@@ -77,11 +77,10 @@ def main():
             print(text)
         except Exception:
             pass
-
+        name = text.split('!', 1)[0][1:]
         # If someone sends a message in the channel then take time (for !hello), get name of senders / relevant channel
         if text.find("PRIVMSG") != -1:
             localtime = get_time()
-            name = text.split('!', 1)[0][1:]
             chat = text.split('PRIVMSG', 1)[1].split(' ', 1)[1].split(' ', 1)[0]
             message = text.split('PRIVMSG', 1)[1].split(':', 1)[1]
             print(repr(message))
@@ -125,8 +124,11 @@ def main():
                 irc.send(bytes("QUIT Bye", "UTF-8"))
                 break
 
+        if text.find("JOIN") and name == botnick!= 1:
+            irc.send(bytes("PRIVMSG " + channel + " :THE GINGER BOT IS HERE" + "\r\n", 'UTF-8'))
 
 # This run the main method
 if __name__ == "__main__":
     main()
+
 
