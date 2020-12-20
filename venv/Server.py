@@ -21,7 +21,7 @@ class Server:
         if ports is None:
             ports = [6667]  # default port for server
 
-        self.name = "MADLADZ.net"
+        self.name = socket.gethostname()
         self.version_number = 0.5
         self.created = datetime.today().strftime("at %X on %d %B,%Y")
 
@@ -131,27 +131,25 @@ class Server:
             # The following is according to https://modern.ircdocs.horse/#rplwelcome-001
 
             # RPL_WELCOME (001)
-            textToSend = nickname + " :Welcome to the to the " + self.name + " Network, " + nickname + "!" + nickname + "@" + \
-                         str(self.ports[0]) + "\r\n"
+            textToSend = ":" + self.name + " 001 " + nickname + " :Welcome to the to the " + self.name + " Network, " + nickname + "[!" + nickname + "@" + self.name + "]\r\n"
             self.sendMessage(client_socket, textToSend)
 
             # RPL_YOURHOST (002)
-            textToSend = nickname + " :Your host is " + self.name + ", running version" + str(self.version_number) + \
+            textToSend = ":" + self.name + " 002 " + nickname + " :Your host is " + self.name + ", running version " + str(self.version_number) + \
                          "\r\n"
             self.sendMessage(client_socket, textToSend)
 
             # RPL_CREATED (003)
-            textToSend = nickname + " :This server was created " + self.created + "\r\n"
+            textToSend = ":" + self.name + " 003 " + nickname + " :This server was created " + self.created + "\r\n"
             self.sendMessage(client_socket, textToSend)
 
             # RPL_MYINFO (004)
-            textToSend = nickname + self.name + " " + str(self.version_number) + "<available user modes> <available " \
-                                                                                 "channel modes> [<channel modes with a parameter>] \r\n"
+            textToSend = ":" + self.name + " 004 " + nickname + " " + self.name + " o o\r\n"
             self.sendMessage(client_socket, textToSend)
 
             # RPL_ISUPPORT (005)
-            textToSend = nickname + "CHARSET=ascii :are supported by this server \r\n"
-            self.sendMessage(client_socket, textToSend)
+            # textToSend = ":" + self.name + " 005 " + nickname + "CHARSET=ascii :are supported by this server \r\n"
+            # self.sendMessage(client_socket, textToSend)
 
             # ---- MOTD ----
             self.motd(nickname, client_socket)
@@ -162,36 +160,36 @@ class Server:
 
     def motd(self, nickname, client_socket):
         # RPL_MOTDSTART (375)
-        textToSend = nickname + " :- " + self.name + " Message of the day - \r\n"
+        textToSend = ":" + self.name + " 375 " + nickname + " :- " + self.name + " Message of the day - \r\n"
         self.sendMessage(client_socket, textToSend)
 
         # RPL_MOTD (372)
-        textToSend = nickname + " :G'DAY MADLADZ \r\n"
+        textToSend = ":" + self.name + " 372 " + nickname + " :G'DAY MADLADZ \r\n"
         self.sendMessage(client_socket, textToSend)
 
         # RPL_MOTDSTART (376)
-        textToSend = nickname + " :End of /MOTD command. \r\n"
+        textToSend = ":" + self.name + " 376 " + nickname + " :End of /MOTD command. \r\n"
         self.sendMessage(client_socket, textToSend)
 
     def luser(self, nickname, client_socket):
         # RPL_LUSERCLIENT (251)
-        textToSend = nickname + " :There are " + str(len(self.nicknames)) + " users and 0 invisible on 1 servers \r\n"
+        textToSend = ":" + self.name + " 251 " + nickname + " :There are " + str(len(self.nicknames)) + " users and 0 services on 1 server \r\n"
         self.sendMessage(client_socket, textToSend)
 
         # RPL_LUSEROP (252)
-        textToSend = nickname + " 0 :operator(s) online \r\n"
+        textToSend = ":" + self.name + " 252 " + nickname + " 0 :operator(s) online \r\n"
         self.sendMessage(client_socket, textToSend)
 
         # RPL_LUSERUNKNOWN (253)
-        textToSend = nickname + " 0 :unknown connection(s) \r\n"
+        textToSend = ":" + self.name + " 253 " + nickname + " 0 :unknown connection(s) \r\n"
         self.sendMessage(client_socket, textToSend)
 
         # RPL_LUSERCHANNELS(254)
-        textToSend = nickname + " 1 :channels formed \r\n"
+        textToSend = ":" + self.name + " 254 " + nickname + " 1 :channels formed \r\n"
         self.sendMessage(client_socket, textToSend)
 
         # RPL_LUSERME (255)
-        textToSend = nickname + " :I have " + str(len(self.nicknames)) + " clients and 0 servers \r\n"
+        textToSend = ":" + self.name + " 255 " + nickname + " :I have " + str(len(self.nicknames)) + " clients and 0 servers \r\n"
         self.sendMessage(client_socket, textToSend)
 
     def receiveMessage(self, clientSocket):
@@ -202,6 +200,7 @@ class Server:
             return None
 
     def sendMessage(self, tosocket, msg):
+        print("SENT CHUNK: " + msg)
         total_sent = 0
         while total_sent < len(msg):
             to_send = bytes(msg[total_sent:], "UTF-8")
@@ -298,7 +297,7 @@ class Server:
     #   if it does already exist, the client has to be entered into it.
     def joinChannel(self, channel, client_socket):
         server_channel = self.channels[channel]
-        server_channel.addMember(self.sockets_returns_username[client_socket], client_socket)
+        server_channel.addMember(self.sockets_returns_username[client_socket], client_socket, self.name)
 
 
 # from https://github.com/jrosdahl/miniircd/blob/master/miniircd lines 1053-1060

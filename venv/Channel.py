@@ -29,18 +29,27 @@ class Channel:
         self.socketList = [serverSocket]
         self.clientList = []
 
-    def addMember(self, client, client_address) -> None:
+    def update_dictionaries(self, client, client_socket):
+        self.members_returns_socket[client] = client_socket
+        self.members_returns_name[client_socket] = client
+        self.socketList.append(client_socket)
+        self.clientList.append(client)
+
+    def addMember(self, client, client_address, hostname) -> None:
         print(client)
         print(client_address)
-        self.members_returns_socket[client] = client_address
-        self.clientList.append(client)
+        self.update_dictionaries(client, client_address)
         print("Member joined channel: " + self.name)
 
-        message = ":host MODE " + self.name + " +n \r\n"
+        # message = ":host MODE " + self.name + " +n \r\n"
+        # self.server.sendMessage(client_address, message)
+
+        message = ":" + client + "!" + client + " ::1:6667" + " JOIN " + self.name + "\r\n"
         self.server.sendMessage(client_address, message)
 
-        message = ":" + client + "!~" + client + " host" + " JOIN " + self.name + "\r\n"
-        self.server.sendMessage(client_address, message)
+        # RPL_NOTOPIC (331)
+        textToSend = ":" + hostname + " 331 " + client + " " + self.name + " o o\r\n"
+        self.server.sendMessage(client_address, textToSend)
 
         message = client + " @ " + self.name + " :" + self.get_names(client) + "\r\n"
         self.server.sendMessage(client_address, message)
