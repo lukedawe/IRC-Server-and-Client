@@ -47,12 +47,12 @@ class Server:
         """
 
         self.socketList = [self.serverSocket]
-        self.channels: Dict[string, Channel] = {}  # key: irc_lower(channelname)
-        self.clients: Dict[Socket, Client] = {}
-        self.usernames: Dict[string, Socket] = {}  # username connected to socket
+        self.channels: Dict[str, Channel] = {}  # key: irc_lower(channelname)
+        # self.clients: Dict[Socket, Client] = {}
+        self.usernames_returns_sockets: Dict[string, Socket] = {}  # username connected to socket
+        self.usernames_returns_username: Dict[Socket, string] = {}  # username connected to socket
         self.nicknames: Dict[string, string] = {}  # nickname connected to username
         # self.threads: Dict[bytes, Channel] = {}
-        self.clientList = {}
         self.initialiseServer()
 
     def addChannel(self, name="test") -> Channel:
@@ -71,7 +71,6 @@ class Server:
         self.serverSocket.bind((str(self.ipv6), self.ports[0]))
         self.serverSocket.listen()
 
-        print(f'Listening for connections on {self.ipv6}:{self.ports[0]}...')
         self.addChannel()
         self.refreshServer()
         """
@@ -107,22 +106,16 @@ class Server:
         else:
 
             userinfo = user.split()
-            print(userinfo)
             nickname = userinfo[1]
             username = userinfo[3]
 
-            self.usernames[username] = client_socket
-            self.nicknames[nickname] = username
+            self.usernames_returns_sockets[username] = client_socket
 
-            print("nick: " + nickname)
-            print("username: " + username)
+            self.nicknames[nickname] = username
 
             # print("message data: " + user['msgData'].decode('utf-8'))
             address = str(client_address[0])
             port = int(client_address[1])
-
-            print(port)
-            print(address)
 
             # OSError: [WinError 10022] An invalid argument was supplied
             # commented out the binding as that seemed to be causing the issue
@@ -133,7 +126,7 @@ class Server:
             self.socketList.append(client_socket)
 
             # Also save username and username header
-            self.clientList[client_socket] = user
+            self.usernames_returns_username[client_socket] = username
 
             # The following is according to https://modern.ircdocs.horse/#rplwelcome-001
             # hope that helps you :)
@@ -185,17 +178,12 @@ class Server:
             client_socket.send(textToSend)#
             '''
 
-            received = self.reveiveMessageMk3(client_socket)
-
-            print(received)
-
             return True
 
 
     def receiveMessage(self, clientSocket):
         try:
             messageHeader = clientSocket.recv(10)
-            print("message header: " + messageHeader)
             if not len(messageHeader):
                 return False
 
@@ -249,49 +237,37 @@ class Server:
 
                     # Receive message
                     message = self.reveiveMessageMk3(notified_socket)
-                    print(message)
 
                     # If False, client disconnected, cleanup
                     if message is False:
                         # Remove from list for socket.socket()
                         self.removeClient(notified_socket)
-
                         continue
 
-                    # Get user by notified socket, so we will know who sent the message
-                    user = self.clientList[notified_socket]
+                    print(message)
 
+                    # Get user by notified socket, so we will know who sent the message
+                    user = self.usernames_returns_username[notified_socket]
+
+                    self.executeCommands(message, notified_socket)
+
+
+                    """
                     print(
                         f'Received message from {user["msgData"].decode("utf-8")}: {message["msgData"].decode("utf-8")}')
-
-                    # Iterate over connected clients and broadcast message
-                    for client_socket in self.clientList:
-
-                        # But don't sent it to sender
-                        if client_socket != notified_socket:
-                            # Send user and message (both with their headers) We are reusing here message header sent
-                            # by sender, and saved username header send by user when he connected client_socket.send(
-                            # user['header'] + user['msgData'] + message['header'] + message['msgData'])
-
-                            textToSend = ":" + user['msgData'].decode("utf-8") + "!" + user['msgData'].decode(
-                                "utf-8") + "@" + self.members[client_socket] + " PRIVMSG " + str(self.name) + " :" + \
-                                         message['msgData'].decode("utf-8")  # NEED TO ENCODE AGAIN TO SEND
-                            print(f'Sent Text: {textToSend}')
-                            textToSend = textToSend.encode()
-                            client_socket.send(textToSend)
-
+                    """
             # It's not really necessary to have this, but will handle some socket exceptions just in case
             for notified_socket in exception_sockets:
                 # Remove from list for socket.socket()
                 self.socketList.pop(notified_socket)
 
                 # Remove from our list of users
-                del self.clientList[notified_socket]
+                del self.usernames_returns_username[notified_socket]
 
     def addMember(self, client, clientaddress) -> None:
         self.members[client] = clientaddress
 
-    def removeClient(self, client):
+    def removeClient(self, client, channel):
         print('Closed connection from: {}'.format(self.clientList[client]['msgData'].decode('utf-8')))
 
         # Remove from list for socket.socket()
@@ -300,6 +276,22 @@ class Server:
         # Remove from our list of users
         del self.clientList[client]
 
+        self.channels[channel].removeMember(self.usernames[client])
+
+    def executeCommands(self, message, user):
+        message = message.split()
+        command = message[0]
+        relatedData = message[1]
+        if command == "JOIN":
+            print("------message------")
+            print(command)
+            self.joinChannel(relatedData, user)
+
+    def joinChannel(self, channel, client_socket):
+        print("------channel------")
+        print(channel)
+        server_channel = self.channels[channel]
+        server_channel.addMember(self.usernames_returns_username[client_socket], client_socket)
 
 # from https://github.com/jrosdahl/miniircd/blob/master/miniircd lines 1053-1060
 _ircstring_translation = bytes.maketrans(
@@ -310,3 +302,4 @@ _ircstring_translation = bytes.maketrans(
 
 def irc_lower(s: bytes) -> bytes:
     return s.translate(_ircstring_translation)
+

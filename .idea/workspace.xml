@@ -1,16 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f1be31b5-c8ef-4130-9be8-a27a3aa594f2" name="Default Changelist" comment="Formatted">
-      <change afterPath="$PROJECT_DIR$/venv/bot.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/venv/facts.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_15_12_2020_14_37__Default_Changelist_.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_15_12_2020_14_37__Default_Changelist_.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_15_12_2020_14_43__Default_Changelist_.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_15_12_2020_14_43__Default_Changelist_.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_15_12_2020_14_43__Default_Changelist_1.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_15_12_2020_14_43__Default_Changelist_1.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_15_12_2020_14_36__Default_Changelist_.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_15_12_2020_14_36__Default_Changelist_.xml" afterDir="false" />
+    <list default="true" id="f1be31b5-c8ef-4130-9be8-a27a3aa594f2" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bot.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/facts.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/venv/Channel.py" beforeDir="false" afterPath="$PROJECT_DIR$/venv/Channel.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/venv/Server.py" beforeDir="false" afterPath="$PROJECT_DIR$/venv/Server.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -294,7 +287,14 @@
       <option name="project" value="LOCAL" />
       <updated>1608413989489</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="[Stable] Can connect to bot, cannot  let them join a channel.">
+      <created>1608419695940</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1608419695940</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -319,10 +319,11 @@
     <MESSAGE value="Working with IPv6 and fixed minor commands bugs" />
     <MESSAGE value="Added !users command" />
     <MESSAGE value="Added Quit" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added Quit" />
+    <MESSAGE value="[Stable] Can connect to bot, cannot  let them join a channel." />
+    <option name="LAST_COMMIT_MESSAGE" value="[Stable] Can connect to bot, cannot  let them join a channel." />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/IRC_Server_and_Client$Server.coverage" NAME="bot Coverage Results" MODIFIED="1608419111309" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/venv" />
-    <SUITE FILE_PATH="coverage/IRC_Server_and_Client$Menu.coverage" NAME="Menu Coverage Results" MODIFIED="1608419255882" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/venv" />
+    <SUITE FILE_PATH="coverage/IRC_Server_and_Client$Menu.coverage" NAME="Menu Coverage Results" MODIFIED="1608425873721" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/venv" />
   </component>
 </project>
