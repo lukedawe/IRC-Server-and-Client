@@ -1,6 +1,7 @@
 import ipaddress
 import socket
 import string
+from datetime import datetime
 from typing import Dict
 from Channel import Channel
 import Client
@@ -19,6 +20,10 @@ class Server:
         self.members = {}
         if ports is None:
             ports = [6667]  # default port for server
+
+        self.name = "MADLADZ.net"
+        self.version_number = 0.5
+        self.created = datetime.today().strftime("at %X on %d %B,%Y")
 
         self.ports = ports
         self.ipv6 = ipv6
@@ -50,7 +55,7 @@ class Server:
         self.channels: Dict[str, Channel] = {}  # key: irc_lower(channelname)
         # self.clients: Dict[Socket, Client] = {}
         self.usernames_returns_sockets: Dict[string, Socket] = {}  # username connected to socket
-        self.usernames_returns_username: Dict[Socket, string] = {}  # username connected to socket
+        self.sockets_returns_username: Dict[Socket, string] = {}  # username connected to socket
         self.nicknames: Dict[string, string] = {}  # nickname connected to username
         # self.threads: Dict[bytes, Channel] = {}
         self.initialiseServer()
@@ -98,8 +103,8 @@ class Server:
 
         client_socket, client_address = self.serverSocket.accept()
         # Client should send his name right away, receive it
-        cap = self.reveiveMessageMk3(client_socket)
-        user = self.reveiveMessageMk3(client_socket)
+        cap = self.receiveMessage(client_socket)
+        user = self.receiveMessage(client_socket)
 
         if not (cap and user):
             return False
@@ -117,94 +122,79 @@ class Server:
             address = str(client_address[0])
             port = int(client_address[1])
 
-            # OSError: [WinError 10022] An invalid argument was supplied
-            # commented out the binding as that seemed to be causing the issue
-            # client_socket.bind((address, port))
-            # also, miniircd does not try to bind the port when a new client connects
-
             # Add accepted socket to select.select() list
             self.socketList.append(client_socket)
 
             # Also save username and username header
-            self.usernames_returns_username[client_socket] = username
+            self.sockets_returns_username[client_socket] = username
 
             # The following is according to https://modern.ircdocs.horse/#rplwelcome-001
-            # hope that helps you :)
 
-            # TODO I think we need to send the user this: "<client> :Welcome to the <networkname>
-            #  Network, <nick>[!<user>@<host>]"
-
-            textToSend = nickname + " :Welcome to the to the something Network, " + nickname + "!" + nickname + "@" + \
+            # RPL_WELCOME (001)
+            textToSend = nickname + " :Welcome to the to the " + self.name + " Network, " + nickname + "!" + nickname + "@" + \
                          str(self.ports[0]) + "\r\n"
-            print(f'Sent Text: {textToSend}')
-
             self.sendMessage(client_socket, textToSend)
 
-            # TODO now maybe we send this? "<client> :Your host is <servername>, running version <version>"
-            textToSend = nickname + " :Your host is <servername>, running version <version> \r\n"
-            print(f'Sent Text: {textToSend}')
-
+            # RPL_YOURHOST (002)
+            textToSend = nickname + " :Your host is " + self.name + ", running version" + str(self.version_number) + \
+                         "\r\n"
             self.sendMessage(client_socket, textToSend)
 
-            # TODO now maybe we send this to the client?   "<client> <servername> <version> <available user modes>
-            #   <available channel modes> [<channel modes with a parameter>]"
-
-            textToSend = nickname + "<servername> <version> <available user modes> <available channel modes> " \
-                                    "[<channel modes with a parameter>] \r\n"
-            print(f'Sent Text: {textToSend}')
-
+            # RPL_CREATED (003)
+            textToSend = nickname + " :This server was created " + self.created + "\r\n"
             self.sendMessage(client_socket, textToSend)
 
-            # TODO now let's try this one...
-            textToSend = nickname + "<1-13 tokens> :are supported by this server \r\n"
-            print(f'Sent Text: {textToSend}')
-
+            # RPL_MYINFO (004)
+            textToSend = nickname + self.name + " " + str(self.version_number) + "<available user modes> <available " \
+                                                                                 "channel modes> [<channel modes with a parameter>] \r\n"
             self.sendMessage(client_socket, textToSend)
 
-            '''
-            address = str(client_address[0]) + ":" + str(client_address[1])
-            
-            # And add member
-            self.addMember(client_socket, address)
-    
-            print('Accepted new connection from {} username: {}'.format(address,
-                                                                        user['msgData'].decode('utf-8')))
-    
-            textToSend = ":" + user['msgData'].decode("utf-8") + "!~" + user['msgData'].decode(
-                "utf-8") + "@" + self.members[client_socket] + " JOIN " + self.name
-            print(f'Sent Text: {textToSend}')
-    
-            textToSend = textToSend.encode()
-            client_socket.send(textToSend)#
-            '''
+            # RPL_ISUPPORT (005)
+            textToSend = nickname + "CHARSET=ascii :are supported by this server \r\n"
+            self.sendMessage(client_socket, textToSend)
 
+            # ---- MOTD ----
+            self.motd(nickname, client_socket)
+
+            # ---- LUSER ----
+            self.luser(nickname, client_socket)
             return True
 
+    def motd(self, nickname, client_socket):
+        # RPL_MOTDSTART (375)
+        textToSend = nickname + " :- " + self.name + " Message of the day - \r\n"
+        self.sendMessage(client_socket, textToSend)
+
+        # RPL_MOTD (372)
+        textToSend = nickname + " :G'DAY MADLADZ \r\n"
+        self.sendMessage(client_socket, textToSend)
+
+        # RPL_MOTDSTART (376)
+        textToSend = nickname + " :End of /MOTD command. \r\n"
+        self.sendMessage(client_socket, textToSend)
+
+    def luser(self, nickname, client_socket):
+        # RPL_LUSERCLIENT (251)
+        textToSend = nickname + " :There are " + str(len(self.nicknames)) + " users and 0 invisible on 1 servers \r\n"
+        self.sendMessage(client_socket, textToSend)
+
+        # RPL_LUSEROP (252)
+        textToSend = nickname + " 0 :operator(s) online \r\n"
+        self.sendMessage(client_socket, textToSend)
+
+        # RPL_LUSERUNKNOWN (253)
+        textToSend = nickname + " 0 :unknown connection(s) \r\n"
+        self.sendMessage(client_socket, textToSend)
+
+        # RPL_LUSERCHANNELS(254)
+        textToSend = nickname + " 1 :channels formed \r\n"
+        self.sendMessage(client_socket, textToSend)
+
+        # RPL_LUSERME (255)
+        textToSend = nickname + " :I have " + str(len(self.nicknames)) + " clients and 0 servers \r\n"
+        self.sendMessage(client_socket, textToSend)
 
     def receiveMessage(self, clientSocket):
-        try:
-            messageHeader = clientSocket.recv(10)
-            if not len(messageHeader):
-                return False
-
-            messageLength = int(messageHeader.decode('utf-8').strip())
-            return {'header': messageHeader, 'msgData': clientSocket.recv(messageLength)}
-
-        except:
-            return False
-
-    def receiveMessageMk2(self, clientSocket):
-        chunks = []
-        bytes_recd = 0
-        while bytes_recd < MSGLEN:
-            chunk = clientSocket.recv(min(MSGLEN - bytes_recd, MSGLEN))
-            if chunk == b'':
-                raise RuntimeError("socket connection broken")
-            chunks.append(chunk)
-            bytes_recd = bytes_recd + len(chunk)
-        return b''.join(chunks)
-
-    def reveiveMessageMk3(self, clientSocket):
         chunk = clientSocket.recv(MSGLEN).decode("UTF-8")
         if chunk:
             return chunk
@@ -212,13 +202,13 @@ class Server:
             return None
 
     def sendMessage(self, tosocket, msg):
-        totalsent = 0
-        while totalsent < len(msg):
-            tosend = bytes(msg[totalsent:], "UTF-8")
-            sent = tosocket.send(tosend)
+        total_sent = 0
+        while total_sent < len(msg):
+            to_send = bytes(msg[total_sent:], "UTF-8")
+            sent = tosocket.send(to_send)
             if sent == 0:
                 raise RuntimeError("socket connection broken")
-            totalsent = totalsent + sent
+            total_sent = total_sent + sent
 
     def refreshServer(self):
         while True:
@@ -236,7 +226,7 @@ class Server:
                 else:
 
                     # Receive message
-                    message = self.reveiveMessageMk3(notified_socket)
+                    message = self.receiveMessage(notified_socket)
 
                     # If False, client disconnected, cleanup
                     if message is False:
@@ -247,10 +237,12 @@ class Server:
                     print(message)
 
                     # Get user by notified socket, so we will know who sent the message
-                    user = self.usernames_returns_username[notified_socket]
+                    user = self.sockets_returns_username[notified_socket]
 
-                    self.executeCommands(message, notified_socket)
+                    command_found = self.executeCommands(message, notified_socket)
 
+                    # We now want to see what channel the client is in, and send their message to the rest of the
+                    #   clients in that channel.
 
                     """
                     print(
@@ -262,7 +254,7 @@ class Server:
                 self.socketList.pop(notified_socket)
 
                 # Remove from our list of users
-                del self.usernames_returns_username[notified_socket]
+                del self.sockets_returns_username[notified_socket]
 
     def addMember(self, client, clientaddress) -> None:
         self.members[client] = clientaddress
@@ -276,22 +268,38 @@ class Server:
         # Remove from our list of users
         del self.clientList[client]
 
-        self.channels[channel].removeMember(self.usernames[client])
+        self.channels[channel].remove_member(self.usernames[client])
 
-    def executeCommands(self, message, user):
+    def executeCommands(self, message, user) -> bool:
         message = message.split()
         command = message[0]
         relatedData = message[1]
+        command_found = False
         if command == "JOIN":
             print("------message------")
             print(command)
             self.joinChannel(relatedData, user)
+            command_found = True
+        elif command == "PING":
+            command_found = True
+            pass
+        elif command == "PONG":
+            command_found = True
+            pass
+        elif command.find("PRIVMSG"):
+            channel = message.split('PRIVMSG', 1)[1].split(' ', 1)[1].split(' ', 1)[0]
+            print(channel)
+            PRIVMSG = message.split('PRIVMSG', 1)[1].split(':', 1)[1]
+            print(PRIVMSG)
 
+        return command_found
+
+    # TODO this has to be made so that (if a channel doesn't exist) the channel is created,
+    #   if it does already exist, the client has to be entered into it.
     def joinChannel(self, channel, client_socket):
-        print("------channel------")
-        print(channel)
         server_channel = self.channels[channel]
-        server_channel.addMember(self.usernames_returns_username[client_socket], client_socket)
+        server_channel.addMember(self.sockets_returns_username[client_socket], client_socket)
+
 
 # from https://github.com/jrosdahl/miniircd/blob/master/miniircd lines 1053-1060
 _ircstring_translation = bytes.maketrans(
@@ -302,4 +310,3 @@ _ircstring_translation = bytes.maketrans(
 
 def irc_lower(s: bytes) -> bytes:
     return s.translate(_ircstring_translation)
-

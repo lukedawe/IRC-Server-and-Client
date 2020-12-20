@@ -5,7 +5,11 @@ from typing import Any, Collection, Dict, List, Optional, Sequence, Set
 from Client import Client
 import select
 
+import socket
+
 HEADER_LENGTH = 10
+
+Socket = socket.socket
 
 
 class Channel:
@@ -16,33 +20,46 @@ class Channel:
         self.server = server
         self.name = name
 
-        # TODO make sure that these dictionaries are kept up to date with eachtother
+        # TODO make sure that these dictionaries are kept up to date with each other
         self.members_returns_socket: Dict[str, Socket] = {}
         self.members_returns_name: Dict[Socket, str] = {}
 
         self.threadID = threading.get_ident()
         self.serverSocket = serverSocket
         self.socketList = [serverSocket]
-        self.clientList = {}
+        self.clientList = []
 
     def addMember(self, client, client_address) -> None:
         print(client)
         print(client_address)
         self.members_returns_socket[client] = client_address
+        self.clientList.append(client)
         print("Member joined channel: " + self.name)
-        message = ":" + client + "!~" + client + "host" + " JOIN " + self.name
-        self.sendMessage(client_address, message)
 
-    def sendMessage(self, tosocket, msg):
-        totalsent = 0
-        while totalsent < len(msg):
-            tosend = bytes(msg[totalsent:], "UTF-8")
-            sent = tosocket.send(tosend)
-            if sent == 0:
-                raise RuntimeError("socket connection broken")
-            totalsent = totalsent + sent
+        message = ":host MODE " + self.name + " +n \r\n"
+        self.server.sendMessage(client_address, message)
 
-    def removeMember(self, client):
+        message = ":" + client + "!~" + client + " host" + " JOIN " + self.name + "\r\n"
+        self.server.sendMessage(client_address, message)
+
+        message = client + " @ " + self.name + " :" + self.get_names(client) + "\r\n"
+        self.server.sendMessage(client_address, message)
+
+        message = client + " " + self.name + " :" + "End of /NAMES list." + "\r\n"
+        self.server.sendMessage(client_address, message)
+
+    def get_names(self, client):
+        name_list = ""
+        for name in self.clientList:
+            if name == client:
+                name = "@" + client
+            if name_list:
+                name_list = name_list + " " + name
+            else:
+                name_list = name
+        return name_list
+
+    def remove_member(self, client):
         print('Closed connection from: {}'.format(self.clientList[client]['msgData'].decode('utf-8')))
 
         # Remove from list for socket.socket()
@@ -51,7 +68,7 @@ class Channel:
         # Remove from our list of users
         del self.clientList[client]
 
-    def distributeMessage(self):
+    def distribute_message(self, notified_socket, user, message):
         # Iterate over connected clients and broadcast message
         for client_socket in self.socketList:
 

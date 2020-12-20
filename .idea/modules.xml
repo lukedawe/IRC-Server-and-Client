@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/IRC-Server-and-Client.iml" filepath="$PROJECT_DIR$/.idea/IRC-Server-and-Client.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/ircServer.iml" filepath="$PROJECT_DIR$/.idea/ircServer.iml" />
     </modules>
   </component>
 </project>
