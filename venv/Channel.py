@@ -11,6 +11,7 @@ HEADER_LENGTH = 10
 
 Socket = socket.socket
 
+
 class Channel:
     # https://github.com/jrosdahl/miniircd/blob/master/miniircd line 47
     threadID = None
@@ -26,24 +27,45 @@ class Channel:
         self.threadID = threading.get_ident()
         self.serverSocket = serverSocket
         self.socketList = [serverSocket]
-        self.clientList = {}
+        self.clientList = []
 
     def addMember(self, client, client_address) -> None:
         print(client)
         print(client_address)
         self.members_returns_socket[client] = client_address
+        self.clientList.append(client)
         print("Member joined channel: " + self.name)
-        message = ":" + client + "!~" + client + "host" + " JOIN " + self.name
-        self.sendMessage(client_address, message)
 
-    def sendMessage(self, tosocket, msg):
+        message = ":" + client + "!~" + client + " host" + " JOIN " + self.name + "\r\n"
+        self.server.sendMessage(client_address, message)
+
+        message = client + " @ " + self.name + " :" + self.get_names(client) + "\r\n"
+        self.server.sendMessage(client_address, message)
+        message = client + " " + self.name + " :" + " End of /NAMES list." + "\r\n"
+        self.server.sendMessage(client_address, message)
+
+
+    def get_names(self, client):
+        name_list = ""
+        for name in self.clientList:
+            if name == client:
+                name = "@" + client
+            if name_list:
+                name_list = name_list + " " + name
+            else:
+                name_list = name
+
+        print(name_list)
+        return name_list
+
+    """def sendMessage(self, tosocket, msg):
         totalsent = 0
         while totalsent < len(msg):
             tosend = bytes(msg[totalsent:], "UTF-8")
             sent = tosocket.send(tosend)
             if sent == 0:
                 raise RuntimeError("socket connection broken")
-            totalsent = totalsent + sent
+            totalsent = totalsent + sent"""
 
     def removeMember(self, client):
         print('Closed connection from: {}'.format(self.clientList[client]['msgData'].decode('utf-8')))

@@ -98,8 +98,8 @@ class Server:
 
         client_socket, client_address = self.serverSocket.accept()
         # Client should send his name right away, receive it
-        cap = self.reveiveMessageMk3(client_socket)
-        user = self.reveiveMessageMk3(client_socket)
+        cap = self.reveiveMessage(client_socket)
+        user = self.reveiveMessage(client_socket)
 
         if not (cap and user):
             return False
@@ -180,31 +180,7 @@ class Server:
 
             return True
 
-
-    def receiveMessage(self, clientSocket):
-        try:
-            messageHeader = clientSocket.recv(10)
-            if not len(messageHeader):
-                return False
-
-            messageLength = int(messageHeader.decode('utf-8').strip())
-            return {'header': messageHeader, 'msgData': clientSocket.recv(messageLength)}
-
-        except:
-            return False
-
-    def receiveMessageMk2(self, clientSocket):
-        chunks = []
-        bytes_recd = 0
-        while bytes_recd < MSGLEN:
-            chunk = clientSocket.recv(min(MSGLEN - bytes_recd, MSGLEN))
-            if chunk == b'':
-                raise RuntimeError("socket connection broken")
-            chunks.append(chunk)
-            bytes_recd = bytes_recd + len(chunk)
-        return b''.join(chunks)
-
-    def reveiveMessageMk3(self, clientSocket):
+    def reveiveMessage(self, clientSocket):
         chunk = clientSocket.recv(MSGLEN).decode("UTF-8")
         if chunk:
             return chunk
@@ -236,7 +212,7 @@ class Server:
                 else:
 
                     # Receive message
-                    message = self.reveiveMessageMk3(notified_socket)
+                    message = self.reveiveMessage(notified_socket)
 
                     # If False, client disconnected, cleanup
                     if message is False:
@@ -249,8 +225,10 @@ class Server:
                     # Get user by notified socket, so we will know who sent the message
                     user = self.usernames_returns_username[notified_socket]
 
-                    self.executeCommands(message, notified_socket)
+                    command_found = self.executeCommands(message, notified_socket)
 
+                    # We now want to see what channel the client is in, and send their message to the rest of the
+                    #   clients in that channel.
 
                     """
                     print(
@@ -278,20 +256,36 @@ class Server:
 
         self.channels[channel].removeMember(self.usernames[client])
 
-    def executeCommands(self, message, user):
+    def executeCommands(self, message, user) -> bool:
         message = message.split()
         command = message[0]
         relatedData = message[1]
+        command_found = False
         if command == "JOIN":
             print("------message------")
             print(command)
             self.joinChannel(relatedData, user)
+            command_found = True
+        elif command == "PING":
+            command_found = True
+            pass
+        elif command == "PONG":
+            command_found = True
+            pass
+        elif command.find("PRIVMSG"):
+            channel = message.split('PRIVMSG', 1)[1].split(' ', 1)[1].split(' ', 1)[0]
+            print(channel)
+            PRIVMSG = message.split('PRIVMSG', 1)[1].split(':', 1)[1]
+            print(PRIVMSG)
+
+        return command_found
 
     def joinChannel(self, channel, client_socket):
         print("------channel------")
         print(channel)
         server_channel = self.channels[channel]
         server_channel.addMember(self.usernames_returns_username[client_socket], client_socket)
+
 
 # from https://github.com/jrosdahl/miniircd/blob/master/miniircd lines 1053-1060
 _ircstring_translation = bytes.maketrans(
@@ -302,4 +296,3 @@ _ircstring_translation = bytes.maketrans(
 
 def irc_lower(s: bytes) -> bytes:
     return s.translate(_ircstring_translation)
-
