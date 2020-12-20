@@ -27,29 +27,10 @@ class Server:
 
         self.ports = ports
         self.ipv6 = ipv6
-        self.socketList = []
         self.serverSocket = Socket(family=socket.AF_INET6)
-
-        # self.listen = listen
-        # self.serverSocket.listen()
 
         # this means that you can reuse addresses for reconnection
         self.serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
-        """
-        if not password:
-            self.password = hashlib.sha224(b"password").hexdigest()
-        else:
-            self.password = password
-   
-        if self.ipv6:
-            self.address = socket.getaddrinfo(listen, None, proto=self.serverSocket.IPPROTO_TCP)
-        else:
-            self.ipv6 = "[::1]"
-            server_name_limit = 63  # This is from RFC.
-            self.name = socket.getfqdn()[:server_name_limit].encode()
-            print("Socket = " + socket.getfqdn())
-        """
 
         self.socketList = [self.serverSocket]
         self.channels: Dict[str, Channel] = {}  # key: irc_lower(channelname)
@@ -60,8 +41,13 @@ class Server:
         # self.threads: Dict[bytes, Channel] = {}
         self.initialiseServer()
 
-    def addChannel(self, name="test") -> Channel:
-        name = "#" + name  # RCD channel names have to start with a hashtag
+    def update_dicts(self, user_socket, name):
+        self.socketList.append(user_socket)
+        self.sockets_returns_username[user_socket] = name
+        self.usernames_returns_sockets[name] = user_socket
+        self.nicknames = name
+
+    def addChannel(self, name="#test") -> Channel:
         name = name[0:63]
         channel = Channel(self, name, self.serverSocket)
         self.serverSocket.listen()
@@ -77,25 +63,9 @@ class Server:
         self.serverSocket.listen()
 
         self.addChannel()
+
         self.refreshServer()
-        """
-        for port in self.ports:
-            s = socket.socket(
-                socket.AF_INET6 if self.ipv6 else socket.AF_INET,
-                socket.SOCK_STREAM,
-            )
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            s.bind((self.ipv6, port))
-            s.listen(5)
-            self.socketList.append(s)
 
-
-        self.serverSocket.bind((Socket, bytes(self.ports[0])))
-        self.serverSocket.listen()
-        """
-
-    # TODO find what channel the client wants to join
-    # TODO add that client to the list of channel members
     def initReg(self) -> bool:
         # Accept new connection
         # That gives us new socket - client socket, connected to this given client only, it's unique for that client
@@ -114,19 +84,7 @@ class Server:
             nickname = userinfo[1]
             username = userinfo[3]
 
-            self.usernames_returns_sockets[username] = client_socket
-
-            self.nicknames[nickname] = username
-
-            # print("message data: " + user['msgData'].decode('utf-8'))
-            address = str(client_address[0])
-            port = int(client_address[1])
-
-            # Add accepted socket to select.select() list
-            self.socketList.append(client_socket)
-
-            # Also save username and username header
-            self.sockets_returns_username[client_socket] = username
+            self.update_dicts(client_socket, username)
 
             # The following is according to https://modern.ircdocs.horse/#rplwelcome-001
 
@@ -135,7 +93,8 @@ class Server:
             self.sendMessage(client_socket, textToSend)
 
             # RPL_YOURHOST (002)
-            textToSend = ":" + self.name + " 002 " + nickname + " :Your host is " + self.name + ", running version " + str(self.version_number) + \
+            textToSend = ":" + self.name + " 002 " + nickname + " :Your host is " + self.name + ", running version " + str(
+                self.version_number) + \
                          "\r\n"
             self.sendMessage(client_socket, textToSend)
 
@@ -144,7 +103,8 @@ class Server:
             self.sendMessage(client_socket, textToSend)
 
             # RPL_MYINFO (004)
-            textToSend = ":" + self.name + " 004 " + nickname + " " + self.name + " " + str(self.version_number) + " o o\r\n"
+            textToSend = ":" + self.name + " 004 " + nickname + " " + self.name + " " + str(
+                self.version_number) + " o o\r\n"
             self.sendMessage(client_socket, textToSend)
 
             # RPL_ISUPPORT (005)
@@ -174,7 +134,8 @@ class Server:
 
     def luser(self, nickname, client_socket):
         # RPL_LUSERCLIENT (251)
-        textToSend = ":" + self.name + " 251 " + nickname + " :There are " + str(len(self.nicknames)) + " users and 0 services on 1 server \r\n"
+        textToSend = ":" + self.name + " 251 " + nickname + " :There are " + str(
+            len(self.nicknames)) + " users and 0 services on 1 server \r\n"
         self.sendMessage(client_socket, textToSend)
 
         # RPL_LUSEROP (252)
@@ -190,7 +151,8 @@ class Server:
         self.sendMessage(client_socket, textToSend)
 
         # RPL_LUSERME (255)
-        textToSend = ":" + self.name + " 255 " + nickname + " :I have " + str(len(self.nicknames)) + " clients and 0 servers \r\n"
+        textToSend = ":" + self.name + " 255 " + nickname + " :I have " + str(
+            len(self.nicknames)) + " clients and 0 servers \r\n"
         self.sendMessage(client_socket, textToSend)
 
     def receiveMessage(self, clientSocket):
@@ -236,9 +198,6 @@ class Server:
 
                     print(message)
 
-                    # Get user by notified socket, so we will know who sent the message
-                    user = self.sockets_returns_username[notified_socket]
-
                     command_found = self.executeCommands(message, notified_socket)
 
                     # We now want to see what channel the client is in, and send their message to the rest of the
@@ -270,15 +229,13 @@ class Server:
 
         self.channels[channel].remove_member(self.usernames[client])
 
-    def executeCommands(self, message, user) -> bool:
+    def executeCommands(self, message, user_socket) -> bool:
         messagesArr = message.split()
         command = messagesArr[0]
         relatedData = messagesArr[1]
         command_found = False
         if command == "JOIN":
-            print("------message------")
-            print(command)
-            self.joinChannel(relatedData, user)
+            self.joinChannel(relatedData, user_socket)
             command_found = True
         elif command == "PING":
             command_found = True
@@ -292,19 +249,25 @@ class Server:
         elif command == "WHO":
             command_found = True
             pass
-        elif command.find("PRIVMSG"):
+        elif command == "PRIVMSG":
+            print("sending private message")
             channel = message.split('PRIVMSG', 1)[1].split(' ', 1)[1].split(' ', 1)[0]
-            print(channel)
             PRIVMSG = message.split('PRIVMSG', 1)[1].split(':', 1)[1]
-            print(PRIVMSG)
+            sending_channel = self.channels[channel]
+            sending_channel.distribute_message(user_socket, self.sockets_returns_username[user_socket], PRIVMSG)
 
         return command_found
 
     # TODO this has to be made so that (if a channel doesn't exist) the channel is created,
     #   if it does already exist, the client has to be entered into it.
     def joinChannel(self, channel, client_socket):
-        server_channel = self.channels[channel]
-        server_channel.addMember(self.sockets_returns_username[client_socket], client_socket, self.name)
+        try:
+            server_channel = self.channels[channel]
+            server_channel.addMember(self.sockets_returns_username[client_socket], self.nicknames[self.
+                                     sockets_returns_username[client_socket]], client_socket, self.name)
+        except:
+            server_channel = self.addChannel(channel)
+            server_channel.addMember(self.sockets_returns_username[client_socket], client_socket, self.name)
 
 
 # from https://github.com/jrosdahl/miniircd/blob/master/miniircd lines 1053-1060
