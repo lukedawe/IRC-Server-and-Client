@@ -131,23 +131,16 @@ class Server:
             # The following is according to https://modern.ircdocs.horse/#rplwelcome-001
             # hope that helps you :)
 
-            # TODO I think we need to send the user this: "<client> :Welcome to the <networkname>
-            #  Network, <nick>[!<user>@<host>]"
-
             textToSend = nickname + " :Welcome to the to the something Network, " + nickname + "!" + nickname + "@" + \
                          str(self.ports[0]) + "\r\n"
             print(f'Sent Text: {textToSend}')
 
             self.sendMessage(client_socket, textToSend)
 
-            # TODO now maybe we send this? "<client> :Your host is <servername>, running version <version>"
             textToSend = nickname + " :Your host is <servername>, running version <version> \r\n"
             print(f'Sent Text: {textToSend}')
 
             self.sendMessage(client_socket, textToSend)
-
-            # TODO now maybe we send this to the client?   "<client> <servername> <version> <available user modes>
-            #   <available channel modes> [<channel modes with a parameter>]"
 
             textToSend = nickname + "<servername> <version> <available user modes> <available channel modes> " \
                                     "[<channel modes with a parameter>] \r\n"
@@ -155,7 +148,6 @@ class Server:
 
             self.sendMessage(client_socket, textToSend)
 
-            # TODO now let's try this one...
             textToSend = nickname + "<1-13 tokens> :are supported by this server \r\n"
             print(f'Sent Text: {textToSend}')
 
@@ -254,7 +246,7 @@ class Server:
         # Remove from our list of users
         del self.clientList[client]
 
-        self.channels[channel].removeMember(self.usernames[client])
+        self.channels[channel].remove_member(self.usernames[client])
 
     def executeCommands(self, message, user) -> bool:
         message = message.split()
@@ -280,9 +272,9 @@ class Server:
 
         return command_found
 
+    # TODO this has to be made so that (if a channel doesn't exist) the channel is created,
+    #   if it does already exist, the client has to be entered into it.
     def joinChannel(self, channel, client_socket):
-        print("------channel------")
-        print(channel)
         server_channel = self.channels[channel]
         server_channel.addMember(self.usernames_returns_username[client_socket], client_socket)
 
