@@ -41,11 +41,11 @@ class Server:
         # self.threads: Dict[bytes, Channel] = {}
         self.initialiseServer()
 
-    def update_dicts(self, user_socket, name):
+    def update_dicts(self, user_socket, name, nickname):
         self.socketList.append(user_socket)
         self.sockets_returns_username[user_socket] = name
         self.usernames_returns_sockets[name] = user_socket
-        self.nicknames = name
+        self.nicknames[name] = nickname
 
     def addChannel(self, name="#test") -> Channel:
         name = name[0:63]
@@ -84,7 +84,7 @@ class Server:
             nickname = userinfo[1]
             username = userinfo[3]
 
-            self.update_dicts(client_socket, username)
+            self.update_dicts(client_socket, username, nickname)
 
             # The following is according to https://modern.ircdocs.horse/#rplwelcome-001
 
@@ -265,11 +265,14 @@ class Server:
     def joinChannel(self, channel, client_socket):
         try:
             server_channel = self.channels[channel]
-            server_channel.addMember(self.sockets_returns_username[client_socket], self.nicknames[self.
-                                     sockets_returns_username[client_socket]], client_socket, self.name)
+            username = self.sockets_returns_username[client_socket]
+            server_channel.addMember(self.sockets_returns_username[client_socket], self.nicknames[username],
+                                     client_socket, self.name)
         except:
             server_channel = self.addChannel(channel)
-            server_channel.addMember(self.sockets_returns_username[client_socket], client_socket, self.name)
+            username = self.sockets_returns_username[client_socket]
+            server_channel.addMember(self.sockets_returns_username[client_socket], self.nicknames[username],
+                                     client_socket, self.name)
 
 
 # from https://github.com/jrosdahl/miniircd/blob/master/miniircd lines 1053-1060
