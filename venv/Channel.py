@@ -57,7 +57,6 @@ class Channel:
                 name_list = name_list + " " + name
             else:
                 name_list = name
-
         return name_list
 
     def remove_member(self, client):

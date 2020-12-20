@@ -1,6 +1,7 @@
 import ipaddress
 import socket
 import string
+from datetime import date
 from typing import Dict
 from Channel import Channel
 import Client
@@ -19,6 +20,10 @@ class Server:
         self.members = {}
         if ports is None:
             ports = [6667]  # default port for server
+
+        self.name = "MADLADZ.net"
+        self.version_number = 0.5
+        self.created = date.today().strftime("%d %B, %Y")
 
         self.ports = ports
         self.ipv6 = ipv6
@@ -117,11 +122,6 @@ class Server:
             address = str(client_address[0])
             port = int(client_address[1])
 
-            # OSError: [WinError 10022] An invalid argument was supplied
-            # commented out the binding as that seemed to be causing the issue
-            # client_socket.bind((address, port))
-            # also, miniircd does not try to bind the port when a new client connects
-
             # Add accepted socket to select.select() list
             self.socketList.append(client_socket)
 
@@ -129,46 +129,29 @@ class Server:
             self.usernames_returns_username[client_socket] = username
 
             # The following is according to https://modern.ircdocs.horse/#rplwelcome-001
-            # hope that helps you :)
 
-            textToSend = nickname + " :Welcome to the to the something Network, " + nickname + "!" + nickname + "@" + \
+            # RPL_WELCOME (001)
+            textToSend = nickname + " :Welcome to the to the " + self.name + " Network, " + nickname + "!" + nickname + "@" + \
                          str(self.ports[0]) + "\r\n"
-            print(f'Sent Text: {textToSend}')
-
             self.sendMessage(client_socket, textToSend)
 
-            textToSend = nickname + " :Your host is <servername>, running version <version> \r\n"
-            print(f'Sent Text: {textToSend}')
-
+            # RPL_YOURHOST (002)
+            textToSend = nickname + " :Your host is " + self.name + ", running version" + str(self.version_number) + \
+                         "\r\n"
             self.sendMessage(client_socket, textToSend)
 
-            textToSend = nickname + "<servername> <version> <available user modes> <available channel modes> " \
-                                    "[<channel modes with a parameter>] \r\n"
-            print(f'Sent Text: {textToSend}')
-
+            # RPL_CREATED (003)
+            textToSend = nickname + " :This server was created " + self.created + "\r\n"
             self.sendMessage(client_socket, textToSend)
 
+            # RPL_MYINFO (004)
+            textToSend = nickname + self.name + " " + str(self.version_number) + "<available user modes> <available " \
+                                                            "channel modes> [<channel modes with a parameter>] \r\n"
+            self.sendMessage(client_socket, textToSend)
+
+            # RPL_ISUPPORT (005)
             textToSend = nickname + "<1-13 tokens> :are supported by this server \r\n"
-            print(f'Sent Text: {textToSend}')
-
             self.sendMessage(client_socket, textToSend)
-
-            '''
-            address = str(client_address[0]) + ":" + str(client_address[1])
-            
-            # And add member
-            self.addMember(client_socket, address)
-    
-            print('Accepted new connection from {} username: {}'.format(address,
-                                                                        user['msgData'].decode('utf-8')))
-    
-            textToSend = ":" + user['msgData'].decode("utf-8") + "!~" + user['msgData'].decode(
-                "utf-8") + "@" + self.members[client_socket] + " JOIN " + self.name
-            print(f'Sent Text: {textToSend}')
-    
-            textToSend = textToSend.encode()
-            client_socket.send(textToSend)#
-            '''
 
             return True
 
@@ -180,13 +163,13 @@ class Server:
             return None
 
     def sendMessage(self, tosocket, msg):
-        totalsent = 0
-        while totalsent < len(msg):
-            tosend = bytes(msg[totalsent:], "UTF-8")
-            sent = tosocket.send(tosend)
+        total_sent = 0
+        while total_sent < len(msg):
+            to_send = bytes(msg[total_sent:], "UTF-8")
+            sent = tosocket.send(to_send)
             if sent == 0:
                 raise RuntimeError("socket connection broken")
-            totalsent = totalsent + sent
+            total_sent = total_sent + sent
 
     def refreshServer(self):
         while True:
