@@ -229,6 +229,8 @@ class Server:
 
         self.channels[channel].remove_member(self.usernames[client])
 
+    # TODO Private direct messaging
+
     def executeCommands(self, message, user_socket) -> bool:
         messagesArr = message.split()
         command = messagesArr[0]
