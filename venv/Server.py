@@ -2,6 +2,7 @@ import ipaddress
 import socket
 import string
 from datetime import datetime
+import time
 from typing import Dict
 from Channel import Channel
 import Client
@@ -40,6 +41,7 @@ class Server:
         self.nicknames: Dict[string, string] = {}  # nickname connected to username
         # self.threads: Dict[bytes, Channel] = {}
         self.initialiseServer()
+        self.start_time = time.time()
 
     def update_dicts(self, user_socket, name, nickname):
         self.socketList.append(user_socket)
@@ -174,6 +176,7 @@ class Server:
 
     def refreshServer(self):
         while True:
+
             read_sockets, _, exception_sockets = select.select(self.socketList, [], self.socketList)
 
             # Iterate over notified sockets
@@ -191,7 +194,7 @@ class Server:
                     message = self.receiveMessage(notified_socket)
 
                     # If False, client disconnected, cleanup
-                    if message is False:
+                    if not message:
                         # Remove from list for socket.socket()
                         # TODO we need to find the channel that the user is in so that we can remove the client from
                         #   those lists
@@ -232,6 +235,9 @@ class Server:
     # TODO Private direct messaging
 
     def executeCommands(self, message, user_socket) -> bool:
+        if not message:
+            return False
+
         messagesArr = message.split()
         command = messagesArr[0]
         relatedData = messagesArr[1]
@@ -241,7 +247,8 @@ class Server:
             command_found = True
         elif command == "PING":
             command_found = True
-            pass
+            message = ":" + self.name + " PONG " + self.name + " :" + relatedData + "\r\n"
+            self.sendMessage(user_socket, message)
         elif command == "PONG":
             command_found = True
             pass

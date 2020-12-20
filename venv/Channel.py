@@ -27,7 +27,9 @@ class Channel:
         self.threadID = threading.get_ident()
         self.serverSocket = serverSocket
         self.socketList = [serverSocket]
+        # stores all the usernames in the channel
         self.clientList = []
+        # stores all the nick names in the server
         self.clientNicknames = []
 
     def update_dictionaries(self, client, client_socket):
