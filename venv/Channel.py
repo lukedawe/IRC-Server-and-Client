@@ -5,8 +5,11 @@ from typing import Any, Collection, Dict, List, Optional, Sequence, Set
 from Client import Client
 import select
 
+import socket
+
 HEADER_LENGTH = 10
 
+Socket = socket.socket
 
 class Channel:
     # https://github.com/jrosdahl/miniircd/blob/master/miniircd line 47
