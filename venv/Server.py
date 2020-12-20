@@ -193,7 +193,9 @@ class Server:
                     # If False, client disconnected, cleanup
                     if message is False:
                         # Remove from list for socket.socket()
-                        self.removeClient(notified_socket)
+                        # TODO we need to find the channel that the user is in so that we can remove the client from
+                        #   those lists
+                        self.removeClient(self.sockets_returns_username[notified_socket], notified_socket, )
                         continue
 
                     print(message)
@@ -209,17 +211,15 @@ class Server:
                     """
             # It's not really necessary to have this, but will handle some socket exceptions just in case
             for notified_socket in exception_sockets:
-                # Remove from list for socket.socket()
-                self.socketList.pop(notified_socket)
-
-                # Remove from our list of users
-                del self.sockets_returns_username[notified_socket]
+                # TODO we need to find the channel that the user is in so that we can remove the client from
+                #   those lists
+                self.removeClient(self.sockets_returns_username[notified_socket], notified_socket)
 
     def addMember(self, client, clientaddress) -> None:
         self.members[client] = clientaddress
 
-    def removeClient(self, client, channel):
-        print('Closed connection from: {}'.format(self.clientList[client]['msgData'].decode('utf-8')))
+    def removeClient(self, client_name, client_socket, channel):
+        # print('Closed connection from: {}'.format(self.clientList[client]['msgData'].decode('utf-8')))
 
         # Remove from list for socket.socket()
         self.socketList.remove(client)
