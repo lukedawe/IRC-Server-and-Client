@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f1be31b5-c8ef-4130-9be8-a27a3aa594f2" name="Default Changelist" comment="trying to add luser">
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_20_12_2020_01_01__Default_Changelist_.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_20_12_2020_01_01__Default_Changelist_.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_20_12_2020_11_45__Default_Changelist_.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_20_12_2020_11_45__Default_Changelist_.xml" afterDir="false" />
+    <list default="true" id="f1be31b5-c8ef-4130-9be8-a27a3aa594f2" name="Default Changelist" comment="freaking close">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/venv/Channel.py" beforeDir="false" afterPath="$PROJECT_DIR$/venv/Channel.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/venv/Server.py" beforeDir="false" afterPath="$PROJECT_DIR$/venv/Server.py" afterDir="false" />
@@ -305,7 +303,21 @@
       <option name="project" value="LOCAL" />
       <updated>1608474974880</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="freaking close">
+      <created>1608480955014</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1608480955014</updated>
+    </task>
+    <task id="LOCAL-00013" summary="freaking close">
+      <created>1608480959637</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1608480959637</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -335,6 +347,7 @@
     <MESSAGE value="Added Quit" />
     <MESSAGE value="[Stable] Can connect to bot, cannot  let them join a channel." />
     <MESSAGE value="trying to add luser" />
-    <option name="LAST_COMMIT_MESSAGE" value="trying to add luser" />
+    <MESSAGE value="freaking close" />
+    <option name="LAST_COMMIT_MESSAGE" value="freaking close" />
   </component>
 </project>

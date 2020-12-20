@@ -44,17 +44,19 @@ class Channel:
         # message = ":host MODE " + self.name + " +n \r\n"
         # self.server.sendMessage(client_address, message)
 
-        message = ":" + client + "!" + client + " ::1:6667" + " JOIN " + self.name + "\r\n"
+        message = ":" + client + "!" + client + "@::1:6667" + " JOIN " + self.name + "\r\n"
         self.server.sendMessage(client_address, message)
 
         # RPL_NOTOPIC (331)
-        textToSend = ":" + hostname + " 331 " + client + " " + self.name + " o o\r\n"
+        textToSend = ":" + hostname + " 331 " + client + " " + self.name + " :No topic is set\r\n"
         self.server.sendMessage(client_address, textToSend)
 
-        message = client + " @ " + self.name + " :" + self.get_names(client) + "\r\n"
+        # RPL_NAMREPLY (353)
+        message = ":" + hostname + " 353 " + client + " = " + self.name + " :" + self.get_names(client) + " " + client + "\r\n"
         self.server.sendMessage(client_address, message)
 
-        message = client + " " + self.name + " :" + "End of /NAMES list." + "\r\n"
+        # RPL_ENDOFNAMES(366)
+        message = ":" + hostname + " 366 " + client + " " + self.name + " :" + "End of NAMES list" + "\r\n"
         self.server.sendMessage(client_address, message)
 
     def get_names(self, client):

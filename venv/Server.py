@@ -131,7 +131,7 @@ class Server:
             # The following is according to https://modern.ircdocs.horse/#rplwelcome-001
 
             # RPL_WELCOME (001)
-            textToSend = ":" + self.name + " 001 " + nickname + " :Welcome to the to the " + self.name + " Network, " + nickname + "[!" + nickname + "@" + self.name + "]\r\n"
+            textToSend = ":" + self.name + " 001 " + nickname + " :Welcome the IRC Server " + nickname + "[!" + nickname + "@" + self.name + "]\r\n"
             self.sendMessage(client_socket, textToSend)
 
             # RPL_YOURHOST (002)
@@ -144,18 +144,19 @@ class Server:
             self.sendMessage(client_socket, textToSend)
 
             # RPL_MYINFO (004)
-            textToSend = ":" + self.name + " 004 " + nickname + " " + self.name + " o o\r\n"
+            textToSend = ":" + self.name + " 004 " + nickname + " " + self.name + " " + str(self.version_number) + " o o\r\n"
             self.sendMessage(client_socket, textToSend)
 
             # RPL_ISUPPORT (005)
             # textToSend = ":" + self.name + " 005 " + nickname + "CHARSET=ascii :are supported by this server \r\n"
             # self.sendMessage(client_socket, textToSend)
 
+            # ---- LUSER ----
+            self.luser(nickname, client_socket)
+
             # ---- MOTD ----
             self.motd(nickname, client_socket)
 
-            # ---- LUSER ----
-            self.luser(nickname, client_socket)
             return True
 
     def motd(self, nickname, client_socket):
@@ -200,7 +201,7 @@ class Server:
             return None
 
     def sendMessage(self, tosocket, msg):
-        print("SENT CHUNK: " + msg)
+        # print("SENT CHUNK: " + msg)
         total_sent = 0
         while total_sent < len(msg):
             to_send = bytes(msg[total_sent:], "UTF-8")
@@ -270,9 +271,9 @@ class Server:
         self.channels[channel].remove_member(self.usernames[client])
 
     def executeCommands(self, message, user) -> bool:
-        message = message.split()
-        command = message[0]
-        relatedData = message[1]
+        messagesArr = message.split()
+        command = messagesArr[0]
+        relatedData = messagesArr[1]
         command_found = False
         if command == "JOIN":
             print("------message------")
@@ -283,6 +284,12 @@ class Server:
             command_found = True
             pass
         elif command == "PONG":
+            command_found = True
+            pass
+        elif command == "MODE":
+            command_found = True
+            pass
+        elif command == "WHO":
             command_found = True
             pass
         elif command.find("PRIVMSG"):
