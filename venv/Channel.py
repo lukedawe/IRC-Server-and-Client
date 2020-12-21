@@ -32,6 +32,9 @@ class Channel:
         self.clientList = []
         # stores all the nick names in the server
 
+    def return_name_list(self):
+        return self.clientList
+
     def update_dictionaries(self, client, client_socket, nickname):
         self.members_returns_socket[client] = client_socket
         self.socket_returns_members[client_socket] = client
@@ -110,7 +113,7 @@ class Channel:
 
         textToSend = ":" + username + "!" + self.server.name + "@" + self.server.name + " PRIVMSG " + str(
             self.name) + " :" + \
-                     message  # NEED TO ENCODE AGAIN TO SEND
+                     message + " \r\n"
 
         print(f'Sent Text: {textToSend}')
 

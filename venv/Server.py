@@ -23,7 +23,7 @@ class Server:
 
         self.name = socket.gethostname()
         self.version_number = 0.6
-        self.created = datetime.today().strftime("at %X on %d %B,%Y")
+        self.created = datetime.today().strftime("at %X on %d %B, %Y")
 
         self.ports = ports
         self.ipv6 = ipv6
@@ -93,7 +93,7 @@ class Server:
             # The following is according to https://modern.ircdocs.horse/#rplwelcome-001
 
             # RPL_WELCOME (001)
-            textToSend = ":" + self.name + " 001 " + nickname + " :Welcome the IRC Server " + nickname + "[!" + nickname + "@" + self.name + "]\r\n"
+            textToSend = ":" + self.name + " 001 " + nickname + " :Welcome to our IRC Server - " + nickname + "[!" + nickname + "@" + self.name + "]\r\n"
             self.sendMessage(client_socket, textToSend)
 
             # RPL_YOURHOST (002)
@@ -108,7 +108,7 @@ class Server:
 
             # RPL_MYINFO (004)
             textToSend = ":" + self.name + " 004 " + nickname + " " + self.name + " " + str(
-                self.version_number) + " o o\r\n"
+                self.version_number) + "\r\n"
             self.sendMessage(client_socket, textToSend)
 
             # RPL_ISUPPORT (005)
@@ -125,21 +125,22 @@ class Server:
 
     def motd(self, nickname, client_socket):
         # RPL_MOTDSTART (375)
-        textToSend = ":" + self.name + " 375 " + nickname + " :- " + self.name + " Message of the day - \r\n"
+        textToSend = ":" + self.name + " 375 " + nickname + " :- +++ Message of the day +++ - \r\n"
         self.sendMessage(client_socket, textToSend)
 
         # RPL_MOTD (372)
-        textToSend = ":" + self.name + " 372 " + nickname + " :G'DAY MADLADZ \r\n"
+        textToSend = ":" + self.name + " 372 " + nickname + " : +++ G'DAY MADLADZ +++ \r\n"
+        textToSend = ":" + self.name + " 372 " + nickname + " :  +++ GAME ON GAMERS +++ \r\n"
         self.sendMessage(client_socket, textToSend)
 
-        # RPL_MOTDSTART (376)
+        # RPL_MOTDEND (376)
         textToSend = ":" + self.name + " 376 " + nickname + " :End of /MOTD command. \r\n"
         self.sendMessage(client_socket, textToSend)
 
     def luser(self, nickname, client_socket):
         # RPL_LUSERCLIENT (251)
         textToSend = ":" + self.name + " 251 " + nickname + " :There are " + str(
-            len(self.usernames_returns_nicknames)) + " users and 0 services on 1 server \r\n"
+            len(self.usernames_returns_nicknames)) + " users on 1 server \r\n"
         self.sendMessage(client_socket, textToSend)
 
         # RPL_LUSEROP (252)
@@ -228,6 +229,20 @@ class Server:
     def removeClient(self, client_name, client_socket):
         # print('Closed connection from: {}'.format(self.clientList[client]['msgData'].decode('utf-8')))
 
+        #REMOVE FROM ALL CHANNELS
+        for channelname, channel in self.channels.items():
+            userlist = channel.return_name_list()
+            if client_name in userlist:
+                # Send quit message to channel
+                username = self.sockets_returns_username[client_socket]
+                nick = self.usernames_returns_nicknames[username]
+                server_channel = self.channels[channelname]
+                textToSend = nick + " HAS LEFT CHANNEL"
+
+                server_channel.distribute_message(client_socket, username,
+                                                  textToSend)  # Send leave message to make all users in channel aware
+                channel.removeMember(client_name, client_socket)
+
         # Remove from list for socket.socket()
         self.socketList.remove(client_socket)
 
@@ -250,6 +265,10 @@ class Server:
         if command == "JOIN":
             self.joinChannel(relatedData, user_socket)
             command_found = True
+        elif command == "QUIT":
+            print("REMOVING CLIENT: " + self.sockets_returns_username[user_socket])
+            self.removeClient(self.sockets_returns_username[user_socket], user_socket)
+            command_found = True
         elif command == "PING":
             command_found = True
             message = ":" + self.name + " PONG " + self.name + " :" + relatedData + "\r\n"
@@ -257,6 +276,19 @@ class Server:
         elif command == "PONG":
             command_found = True
         elif command == "MODE":
+            command_found = True
+        elif command == "PART":
+            channel = relatedData
+            username = self.sockets_returns_username[user_socket]
+            nick = self.usernames_returns_nicknames[username]
+            server_channel = self.channels[channel]
+            textToSend = nick + " HAS LEFT CHANNEL"
+
+            server_channel.distribute_message(user_socket, username, textToSend) # Send leave message to make all users in channel aware
+            server_channel.removeMember(username, user_socket)
+
+            message = ":" + username + " PART " + channel + "\r\n"
+            self.sendMessage(user_socket, message)
             command_found = True
         elif command == "NAMES":
             self.list_names(user_socket, relatedData)
@@ -280,11 +312,18 @@ class Server:
     #   if it does already exist, the client has to be entered into it.
     def joinChannel(self, channel, client_socket):
         try:
+            username = self.sockets_returns_username[client_socket]
+            nick = self.usernames_returns_nicknames[username]
+
+            server_channel = self.channels[channel]
+            textToSend = nick + " HAS JOINED THE CHANNEL"
+
+            # Send join message to make all users in channel aware
+            server_channel.distribute_message(client_socket, username, textToSend)
+
             server_channel = self.channels[channel]
             username = self.sockets_returns_username[client_socket]
-            server_channel.addMember(self.sockets_returns_username[client_socket],
-                                     self.usernames_returns_nicknames[username],
-                                     client_socket, self.name)
+            server_channel.addMember(username, nick, client_socket, self.name)
         except:
             server_channel = self.addChannel(channel)
             username = self.sockets_returns_username[client_socket]
