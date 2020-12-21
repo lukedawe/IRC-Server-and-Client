@@ -98,7 +98,7 @@ class Channel:
         return name_list
 
     # TODO make nick clashes
-    def distribute_message(self, notified_socket, username, message, messagequery):
+    def distribute_message(self, notified_socket, username, message, message_query):
 
         # Send user and message (both with their headers) We are reusing here message header sent
         # by sender, and saved username header send by user when he connected client_socket.send(
@@ -108,17 +108,17 @@ class Channel:
 
         text_to_send = "NO TEXT SENT"  # Something bad has happened if this stays as this
 
-        if messagequery == "PRIVMSG":
-            text_to_send = ":" + username + "!" + self.server.name + "@" + self.server.name + " " + messagequery + " " \
+        if message_query == "PRIVMSG":
+            text_to_send = ":" + username + "!" + self.server.name + "@" + self.server.name + " " + message_query + " " \
                            + str(self.name) + " :" + message
-        elif messagequery == "JOIN":
-            text_to_send = ":" + username + "!~" + username + "@" + self.server.name + " " + messagequery + " " + str(
+        elif message_query == "JOIN":
+            text_to_send = ":" + username + "!~" + username + "@" + self.server.name + " " + message_query + " " + str(
                 self.name) + " :" + message
-        elif messagequery == "PART":
-            text_to_send = ":" + username + "!" + username + "@" + self.server.name + " " + messagequery + " " + str(
+        elif message_query == "PART":
+            text_to_send = ":" + username + "!" + username + "@" + self.server.name + " " + message_query + " " + str(
                 self.name) + " :" + message
-        elif messagequery == "QUIT":
-            text_to_send = ":" + username + "!" + username + "@" + self.server.name + " " + messagequery + " " + str(
+        elif message_query == "QUIT":
+            text_to_send = ":" + username + "!" + username + "@" + self.server.name + " " + message_query + " " + str(
                 self.name) + " :" + message
 
         print(f'Sent Text: {text_to_send}')

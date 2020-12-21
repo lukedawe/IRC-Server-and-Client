@@ -20,6 +20,7 @@ class Bot:
         # self.channel = "##testchanneloneagz"
         self.channel = "#test"
         self.botnick = "Ginger"
+        self.run_bot()
 
     # This function will take a random line from the facts.txt file and return it.
     def random_line(self, fname) -> str:
@@ -133,12 +134,3 @@ class Bot:
                 if ran != 1:
                     self.irc.send(bytes("PRIVMSG " + self.channel + " :THE GINGER BOT IS HERE" + "\r\n", 'UTF-8'))
                     ran = True
-
-
-def main():
-    bot = Bot()
-    bot.run_bot()
-
-
-if __name__ == "__main__":
-    main()

@@ -1,9 +1,8 @@
-# Netflix type system demo - FakeFlix
-import csv
-import hashlib
-import ipaddress
 import sys
+import threading
+
 from Server import Server
+from bot import Bot
 
 
 def main():
@@ -11,37 +10,40 @@ def main():
 
 
 def menu():
-    choice = input("""
-                      A: Create server
-                      B: Add bot
-                      C: Test server
-                      Q: Quit
+    while True:
+        choice = input("""
+                          A: Create server
+                          B: Add bot
+                          C: Test server
+                          Q: Quit
+    
+                          Please enter your choice: """)
 
-                      Please enter your choice: """)
-
-    if choice == "A" or choice == "a":
-        createServer()
-    elif choice == "B" or choice == "b":
-        addClient()
-    elif choice == "C" or choice == "c":
-        testServer()
-    elif choice == "Q" or choice == "q":
-        sys.exit
-    else:
-        print("You must only select either A or B")
-        print("Please try again")
-        menu()
-
-
-def createServer():
-    server = Server()
-
-
-def addClient():
-    pass
+        if choice == "A" or choice == "a":
+            x = threading.Thread(target=create_server, args=())
+            x.start()
+        elif choice == "B" or choice == "b":
+            y = threading.Thread(target=create_bot, args=())
+            y.start()
+        elif choice == "C" or choice == "c":
+            test_server()
+        elif choice == "Q" or choice == "q":
+            sys.exit
+        else:
+            print("You must only select either A or B")
+            print("Please try again")
+            menu()
 
 
-def testServer():
+def create_server():
+    Server()
+
+
+def create_bot():
+    Bot()
+
+
+def test_server():
     pass
 
 

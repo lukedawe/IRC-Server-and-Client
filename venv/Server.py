@@ -236,8 +236,7 @@ class Server:
                 text_to_send = nick + " HAS LEFT CHANNEL" + "\r\n"
 
                 server_channel.distribute_message(client_socket, username,
-                                                  text_to_send,
-                                                  "QUIT")  # Send leave message to make all users in channel aware
+                                                  text_to_send, "QUIT")  # Send leave message to make all users in channel aware
                 channel.remove_member(client_name, client_socket)
 
         # Remove from list for socket.socket()
@@ -297,6 +296,7 @@ class Server:
             # OLD IRC VERSION BUT LETS DO IT ANYWAY? 352 WHO
             self.list_names(user_socket, related_data)
         elif command == "PRIVMSG":
+            command_found = True
             self.private_messaging(message, user_socket)
         return command_found
 
@@ -325,31 +325,31 @@ class Server:
         print("sending private message")
         username = self.sockets_returns_username[user_socket]
         if " " in message:
-            channel = message.split('privmsg', 1)[1].split(' ', 1)[1].split(' ', 1)[0]
+            channel = message.split('PRIVMSG', 1)[1].split(' ', 1)[1].split(' ', 1)[0]
             # if the channel is the same as a user's name, it's a private (direct) message
             if self.nicknames_returns_usernames.get(channel):
                 recipient_nickname = channel
                 recipient_username = self.nicknames_returns_usernames[recipient_nickname]
                 recipient_socket = self.usernames_returns_sockets[recipient_username]
                 message_contents = message.split(':', 1)[1]
-                message_to_send = ":" + username + "!" + self.name + " privmsg " + recipient_nickname + " :" + \
+                message_to_send = ":" + username + "!" + self.name + " PRIVMSG " + recipient_nickname + " :" + \
                                   message_contents
                 self.send_message(recipient_socket, message_to_send)
         else:
             return
 
         if ":" in message:
-            priv_msg = message.split('privmsg', 1)[1].split(':', 1)[1]
+            priv_msg = message.split('PRIVMSG', 1)[1].split(':', 1)[1]
         else:
             return
 
         if channel in self.channels:
             sending_channel = self.channels[channel]
-            sending_channel.distribute_message(user_socket, username, priv_msg, "privmsg")
+            sending_channel.distribute_message(user_socket, username, priv_msg, "PRIVMSG")
         else:
             self.add_channel(channel)
             sending_channel = self.channels[channel]
-            sending_channel.distribute_message(user_socket, username, priv_msg, "privmsg")
+            sending_channel.distribute_message(user_socket, username, priv_msg, "PRIVMSG")
 
     def list_names(self, user_socket, channel_name):
         if channel_name == "localhost":
