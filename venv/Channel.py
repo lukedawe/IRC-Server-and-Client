@@ -20,9 +20,10 @@ class Channel:
         self.server = server
         self.name = name
 
-        # TODO make sure that these dictionaries are kept up to date with each other
         self.members_returns_socket: Dict[str, Socket] = {}
         self.socket_returns_members: Dict[Socket, str] = {}
+        self.usernames_returns_nicknames: Dict[str, str] = {}  # nickname connected to username
+        self.nicknames_returns_usernames: Dict[str, str] = {}
 
         self.threadID = threading.get_ident()
         self.serverSocket = serverSocket
@@ -30,28 +31,37 @@ class Channel:
         # stores all the usernames in the channel
         self.clientList = []
         # stores all the nick names in the server
-        self.clientNicknames = []
 
-    def update_dictionaries(self, client, client_socket):
+    def update_dictionaries(self, client, client_socket, nickname):
         self.members_returns_socket[client] = client_socket
         self.socket_returns_members[client_socket] = client
         self.socketList.append(client_socket)
         self.clientList.append(client)
+        self.usernames_returns_nicknames[client] = nickname
+        self.nicknames_returns_usernames[nickname] = client
 
     def removeMember(self, client, client_socket):
         # Remove member from all dicts/lists
         del self.members_returns_socket[client]
         del self.socket_returns_members[client_socket]
+        del self.nicknames_returns_usernames[self.usernames_returns_nicknames[client]]
+        del self.usernames_returns_nicknames[client]
         self.socketList.remove(client_socket)
         self.clientList.remove(client)
 
-    def addMember(self, client, nickname, client_address, hostname) -> None:
 
-        if nickname in self.clientNicknames:
+    def addMember(self, client, nickname, client_address, hostname) -> bool:
+
+        if nickname in self.nicknames_returns_usernames:
             print("Nickname clash")
-            return
 
-        self.update_dictionaries(client, client_address)
+            # ERR_NICKNAMEINUSE (433)
+            textToSend = ":" + self.name + " 433 " + nickname + " :Nickname is already in use \r\n"
+            self.server.sendMessage(client_address, textToSend)
+
+            return False
+
+        self.update_dictionaries(client, client_address, nickname)
 
         print("Member joined channel: " + self.name)
 
@@ -73,6 +83,8 @@ class Channel:
         # RPL_ENDOFNAMES(366)
         message = ":" + hostname + " 366 " + client + " " + self.name + " :" + "End of NAMES list" + "\r\n"
         self.server.sendMessage(client_address, message)
+
+        return True
 
     def get_names(self, client):
         name_list = ""

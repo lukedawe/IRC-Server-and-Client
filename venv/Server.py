@@ -22,7 +22,7 @@ class Server:
             ports = [6667]  # default port for server
 
         self.name = socket.gethostname()
-        self.version_number = 0.5
+        self.version_number = 0.6
         self.created = datetime.today().strftime("at %X on %d %B,%Y")
 
         self.ports = ports
@@ -35,24 +35,27 @@ class Server:
         self.socketList = [self.serverSocket]
         self.channels: Dict[str, Channel] = {}  # key: irc_lower(channelname)
         # self.clients: Dict[Socket, Client] = {}
-        self.usernames_returns_sockets: Dict[string, Socket] = {}  # username connected to socket
-        self.sockets_returns_username: Dict[Socket, string] = {}  # username connected to socket
-        self.nicknames: Dict[string, string] = {}  # nickname connected to username
+        self.usernames_returns_sockets: Dict[str, Socket] = {}  # username connected to socket
+        self.sockets_returns_username: Dict[Socket, str] = {}  # username connected to socket
+        self.usernames_returns_nicknames: Dict[str, str] = {}  # nickname connected to username
+        self.nicknames_returns_usernames: Dict[str, str] = {}
         # self.threads: Dict[bytes, Channel] = {}
         self.start_time = time.time()
         self.initialiseServer()
 
+    # updates the dictionaries when a new user connects
     def update_dicts(self, user_socket, name, nickname):
         self.socketList.append(user_socket)
         self.sockets_returns_username[user_socket] = name
         self.usernames_returns_sockets[name] = user_socket
-        self.nicknames[name] = nickname
+        self.usernames_returns_nicknames[name] = nickname
+        self.nicknames_returns_usernames[nickname] = name
 
+    # creates a channel with a set name
     def addChannel(self, name="#test") -> Channel:
         name = name[0:63]
         channel = Channel(self, name, self.serverSocket)
         self.serverSocket.listen()
-        # newThread = channel.threadID
         self.channels[name] = channel
         return channel
 
@@ -136,7 +139,7 @@ class Server:
     def luser(self, nickname, client_socket):
         # RPL_LUSERCLIENT (251)
         textToSend = ":" + self.name + " 251 " + nickname + " :There are " + str(
-            len(self.nicknames)) + " users and 0 services on 1 server \r\n"
+            len(self.usernames_returns_nicknames)) + " users and 0 services on 1 server \r\n"
         self.sendMessage(client_socket, textToSend)
 
         # RPL_LUSEROP (252)
@@ -153,7 +156,7 @@ class Server:
 
         # RPL_LUSERME (255)
         textToSend = ":" + self.name + " 255 " + nickname + " :I have " + str(
-            len(self.nicknames)) + " clients and 0 servers \r\n"
+            len(self.usernames_returns_nicknames)) + " clients and 0 servers \r\n"
         self.sendMessage(client_socket, textToSend)
 
     def receiveMessage(self, clientSocket):
@@ -163,17 +166,17 @@ class Server:
                 return chunk
             else:
                 return None
-        except: # Connection interrupted during transmission
+        except:  # Connection interrupted during transmission
             return None
 
-    def sendMessage(self, tosocket, msg):
+    def sendMessage(self, to_socket, msg):
         # print("SENT CHUNK: " + msg)
         total_sent = 0
         while total_sent < len(msg):
             to_send = bytes(msg[total_sent:], "UTF-8")
             try:
-                sent = tosocket.send(to_send)
-            except: # Connection dropped
+                sent = to_socket.send(to_send)
+            except:  # Connection dropped
                 return
             total_sent = total_sent + sent
 
@@ -231,9 +234,8 @@ class Server:
         # Remove from our lists of users
         del self.sockets_returns_username[client_socket]
         del self.usernames_returns_sockets[client_name]
-        del self.nicknames[client_name]
-
-    # TODO Private direct messaging
+        del self.nicknames_returns_usernames[self.usernames_returns_nicknames[client_name]]
+        del self.usernames_returns_nicknames[client_name]
 
     def executeCommands(self, message, user_socket) -> bool:
         if not message:
@@ -242,7 +244,7 @@ class Server:
             messagesArr = message.split()
             command = messagesArr[0]
             relatedData = messagesArr[1]
-        except: # Split failed return
+        except:  # Split failed return
             return False
         command_found = False
         if command == "JOIN":
@@ -254,52 +256,24 @@ class Server:
             self.sendMessage(user_socket, message)
         elif command == "PONG":
             command_found = True
-            pass
         elif command == "MODE":
             command_found = True
-            pass
         elif command == "NAMES":
-            command_found = True
-            users = ""
-            item = False
-            for peers in self.nicknames:
-                if not item:
-                    users += peers
-                    item = True
-                else:
-                    users += " " + peers
+            self.list_names(user_socket, relatedData)
 
-            print(users)
-
-            message = ":" + self.name + " 353 " + self.sockets_returns_username[user_socket] + " @ " + relatedData + " :" + users + "\r\n"
-            self.sendMessage(user_socket, message)
-            pass
         elif command == "WHO":
             command_found = True
 
             # OLD IRC VERSION BUT LETS DO IT ANYWAY? 352 WHO
-            if relatedData in self.nicknames:
+            if relatedData in self.usernames_returns_nicknames:
                 # DUNNO message = ":" + self.name + " 352 " + self.sockets_returns_username[user_socket] + " :" + relatedData + "\r\n"
                 self.sendMessage(user_socket, message)
             else:
-                message = ":" + self.name + " 315 " + self.sockets_returns_username[user_socket] + " " + relatedData + " :End of /WHO list\r\n"
+                message = ":" + self.name + " 315 " + self.sockets_returns_username[
+                    user_socket] + " " + relatedData + " :End of /WHO list\r\n"
                 self.sendMessage(user_socket, message)
-            pass
         elif command == "PRIVMSG":
-            print("sending private message")
-            if " " in message:
-                channel = message.split('PRIVMSG', 1)[1].split(' ', 1)[1].split(' ', 1)[0]
-            if ":" in message:
-                PRIVMSG = message.split('PRIVMSG', 1)[1].split(':', 1)[1]
-
-            if channel in self.channels:
-                sending_channel = self.channels[channel]
-                sending_channel.distribute_message(user_socket, self.sockets_returns_username[user_socket], PRIVMSG)
-            else:
-                self.addChannel(channel)
-                sending_channel = self.channels[channel]
-                sending_channel.distribute_message(user_socket, self.sockets_returns_username[user_socket], PRIVMSG)
-
+            self.private_messaging(message, user_socket)
         return command_found
 
     # TODO this has to be made so that (if a channel doesn't exist) the channel is created,
@@ -308,23 +282,66 @@ class Server:
         try:
             server_channel = self.channels[channel]
             username = self.sockets_returns_username[client_socket]
-            server_channel.addMember(self.sockets_returns_username[client_socket], self.nicknames[username],
+            server_channel.addMember(self.sockets_returns_username[client_socket],
+                                     self.usernames_returns_nicknames[username],
                                      client_socket, self.name)
         except:
             server_channel = self.addChannel(channel)
             username = self.sockets_returns_username[client_socket]
-            server_channel.addMember(self.sockets_returns_username[client_socket], self.nicknames[username],
+            server_channel.addMember(self.sockets_returns_username[client_socket],
+                                     self.usernames_returns_nicknames[username],
                                      client_socket, self.name)
 
+    def private_messaging(self, message, user_socket):
+        print("sending private message")
+        username = self.sockets_returns_username[user_socket]
+        if " " in message:
+            channel = message.split('PRIVMSG', 1)[1].split(' ', 1)[1].split(' ', 1)[0]
+            # if the channel is the same as a user's name, it's a private (direct) message
+            if self.nicknames_returns_usernames.get(channel):
+                direct_message = True
+                recipient_nickname = channel
+                recipient_username = self.nicknames_returns_usernames[recipient_nickname]
+                recipient_socket = self.usernames_returns_sockets[recipient_username]
+                message_contents = message.split(':', 1)[1]
+                message_to_send = ":" + username + "!" + self.name + " PRIVMSG " + recipient_nickname + " :" + \
+                                  message_contents
+                self.sendMessage(recipient_socket, message_to_send)
+        else:
+            return
 
-# from https://github.com/jrosdahl/miniircd/blob/master/miniircd lines 1053-1060
-_ircstring_translation = bytes.maketrans(
-    (string.ascii_lowercase.upper() + "[]\\^").encode(),
-    (string.ascii_lowercase + "{}|~").encode(),
-)
+        if ":" in message:
+            PRIVMSG = message.split('PRIVMSG', 1)[1].split(':', 1)[1]
+        else:
+            return
 
+        if channel in self.channels:
+            sending_channel = self.channels[channel]
+            sending_channel.distribute_message(user_socket, username, PRIVMSG)
+        else:
+            self.addChannel(channel)
+            sending_channel = self.channels[channel]
+            sending_channel.distribute_message(user_socket, username, PRIVMSG)
 
-def irc_lower(s: bytes) -> bytes:
-    return s.translate(_ircstring_translation)
+    def list_names(self, user_socket, channel_name):
+        if channel_name == "localhost":
+            users = ""
+            item = False
+            for peers in self.usernames_returns_nicknames:
+                if not item:
+                    users += peers
+                    item = True
+                else:
+                    users += " " + peers
+            message = ":" + self.name + " 353 " + self.sockets_returns_username[
+                user_socket] + " @ " + channel_name + " :" + users + "\r\n"
+            self.sendMessage(user_socket, message)
+        else:
+            username = self.sockets_returns_username[user_socket]
+            channel = self.channels[channel_name]
+            message = ":" + self.name + " 353 " + username + " = " + channel_name + " :" + channel.get_names(
+                username) + "\r\n"
+            command_found = True
+            self.sendMessage(user_socket, message)
 
-# TODO
+    # if the username and the nickname isn't the same...
