@@ -103,7 +103,7 @@ class Channel:
         return name_list
 
     # TODO make nick clashes
-    def distribute_message(self, notified_socket, username, message):
+    def distribute_message(self, notified_socket, username, message, messagequery):
 
         # Send user and message (both with their headers) We are reusing here message header sent
         # by sender, and saved username header send by user when he connected client_socket.send(
@@ -111,9 +111,21 @@ class Channel:
         # textToSend = ":" + message + "!" + message + "@" + username + " PRIVMSG " + str(self.name) + " :" + \
         #             message  # NEED TO ENCODE AGAIN TO SEND
 
-        textToSend = ":" + username + "!" + self.server.name + "@" + self.server.name + " PRIVMSG " + str(
-            self.name) + " :" + \
-                     message
+        textToSend = "NO TEXT SENT" # Something bad has happened if this stays as this
+
+        if messagequery == "PRIVMSG":
+            textToSend = ":" + username + "!" + self.server.name + "@" + self.server.name + " " + messagequery + " " + str(
+                self.name) + " :" + \
+                         message
+        elif messagequery == "JOIN":
+            textToSend = ":" + username + "!~" + username + "@" + self.server.name + " " + messagequery + " " + str(
+                self.name) + " :" + message
+        elif messagequery == "PART":
+            textToSend = ":" + username + "!" + username + "@" + self.server.name + " " + messagequery + " " + str(
+                self.name) + " :" + message
+        elif messagequery == "QUIT":
+            textToSend = ":" + username + "!" + username + "@" + self.server.name + " " + messagequery + " " + str(
+                self.name) + " :" + message
 
         print(f'Sent Text: {textToSend}')
 

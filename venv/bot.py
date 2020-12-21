@@ -11,17 +11,18 @@ import time
 class Bot:
 
     def __init__(self):
-        # self.irc = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
-        self.irc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # self.irc = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
-        self.server = "chat.freenode.net"
-        # self.server = "fe80::7f63:edf1:bc43:9bb2"
-        self.channel = "##testchanneloneagz"
-        # self.channel = "#test"
+        # self.irc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.irc = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+        # self.server = "chat.freenode.net"
+        self.server = "::1"
+        # self.channel = "##testchanneloneagz"
+        self.channel = "#test"
         self.botnick = "Ginger"
 
     # This function will take a random line from the facts.txt file and return it.
     def random_line(self, fname) -> str:
+        here = os.path.dirname(os.path.abspath(__file__))
+        print(here)
         try:
             line = random.choice(open(fname, 'r', encoding='cp850').readlines())
             return line
@@ -39,14 +40,14 @@ class Bot:
             sys.exit(1)
 
         # Join the desired server and channel with the desired nickname (botnick)
-        self.irc.send(bytes("USER " + self.botnick + " " + self.botnick + " " + self.botnick + " " + self.botnick + "\n", "UTF-8"))
-        time.sleep(1)
         self.irc.send(bytes("NICK " + self.botnick + "\n", "UTF-8"))
+        time.sleep(1)
+        self.irc.send(bytes("USER " + self.botnick + " " + self.botnick + " " + self.botnick + " " + self.botnick + "\n", "UTF-8"))
         time.sleep(1)
         self.irc.send(bytes("JOIN " + self.channel + "\n", "UTF-8"))
 
     # gets the name of users in channel
-    def get_names(self) -> str:
+    def get_names(self) -> list[str]:
         time.sleep(0.5)
         self.irc.send(bytes('NAMES ' + self.channel + '\r\n', "UTF-8"))
         getnamelist = self.irc.recv(2048).decode("UTF-8")
@@ -54,7 +55,7 @@ class Bot:
         return namelist
 
     #gets the current time
-    def get_time(self) -> int:
+    def get_time(self) -> str:
         current_local_time = time.localtime()
         current_time = time.strftime("%H:%M:%S", current_local_time)
         return current_time
@@ -68,17 +69,15 @@ class Bot:
         ran = False
         loops = 0
         self.connect_to_server()
-        self.irc.settimeout(1)
+        text = ""
         while 1:
             # Constantly try to read information in from the socket
             try:
-
-
                 text = self.irc.recv(2048).decode("UTF-8")
-
                 print(text)
-            except Exception:
+            except:
                 pass
+
             name = text.split('!', 1)[0][1:]
 
             # If someone sends a message in the channel or private message
@@ -88,12 +87,12 @@ class Bot:
                 print(repr(message))
 
                 # Hello command - gives time
-                if message == '!hello\r\n':
+                if message == '!hello\r\n' and self.botnick != chat:
                     localtime = self.get_time()
                     self.irc.send(bytes("PRIVMSG " + chat + " :Hello, the time is " + localtime + "!\r\n", 'UTF-8'))
 
                 # Use 'NAMES' command to get names of all channel users choose a random user then slap them
-                if message == '!slap\r\n':
+                if message == '!slap\r\n' and self.botnick != chat:
                     slapee = random.choice(self.get_names())
                     print(self.get_names())
                     # Special case where bot chooses to slap itself
@@ -110,7 +109,7 @@ class Bot:
                     self.irc.send(bytes("PRIVMSG " + name + " :" + self.random_line("facts.txt") + "\r\n", 'UTF-8'))
 
                 # The '!user' command shows that our bot can keep track of users on the same channel
-                if message == '!users\r\n':
+                if message == '!users\r\n' and self.botnick != chat:
                     users = self.get_names()
                     self.irc.send(bytes("PRIVMSG " + chat + " :Users are " + " ".join(users) + "\r\n", 'UTF-8'))
 
