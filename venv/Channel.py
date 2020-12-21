@@ -36,7 +36,9 @@ class Channel:
         self.members_returns_socket[client] = client_socket
         self.socket_returns_members[client_socket] = client
         self.socketList.append(client_socket)
+        # TODO should the usernames be stored here or the nicknames?
         self.clientList.append(client)
+
         self.usernames_returns_nicknames[client] = nickname
         self.nicknames_returns_usernames[nickname] = client
 
@@ -48,7 +50,6 @@ class Channel:
         del self.usernames_returns_nicknames[client]
         self.socketList.remove(client_socket)
         self.clientList.remove(client)
-
 
     def addMember(self, client, nickname, client_address, hostname) -> bool:
 
@@ -68,6 +69,7 @@ class Channel:
         # message = ":host MODE " + self.name + " +n \r\n"
         # self.server.sendMessage(client_address, message)
 
+        # TODO here, should the nickname or the username be shown?
         message = ":" + client + "!" + client + "@::1:6667" + " JOIN " + self.name + "\r\n"
         self.server.sendMessage(client_address, message)
 
@@ -111,7 +113,6 @@ class Channel:
                      message  # NEED TO ENCODE AGAIN TO SEND
 
         print(f'Sent Text: {textToSend}')
-
 
         # Iterate over connected clients and broadcast message
         for client_socket in self.socketList:
