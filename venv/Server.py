@@ -236,7 +236,7 @@ class Server:
                 textToSend = nick + " HAS LEFT CHANNEL" + "\r\n"
 
                 server_channel.distribute_message(client_socket, username,
-                                                  textToSend)  # Send leave message to make all users in channel aware
+                                                  textToSend, "QUIT")  # Send leave message to make all users in channel aware
                 channel.removeMember(client_name, client_socket)
 
         # Remove from list for socket.socket()
@@ -281,7 +281,7 @@ class Server:
             textToSend = nick + " HAS LEFT CHANNEL" + "\r\n"
 
             server_channel.distribute_message(user_socket, username,
-                                              textToSend)  # Send leave message to make all users in channel aware
+                                              textToSend, "PART")  # Send leave message to make all users in channel aware
             server_channel.removeMember(username, user_socket)
 
             message = ":" + username + " PART " + channel + "\r\n"
@@ -307,7 +307,7 @@ class Server:
             textToSend = nick + " HAS JOINED THE CHANNEL" + "\r\n"
 
             # Send join message to make all users in channel aware
-            server_channel.distribute_message(client_socket, username, textToSend)
+            server_channel.distribute_message(client_socket, username, textToSend, "JOIN")
 
             server_channel = self.channels[channel]
             username = self.sockets_returns_username[client_socket]
@@ -344,11 +344,11 @@ class Server:
 
         if channel in self.channels:
             sending_channel = self.channels[channel]
-            sending_channel.distribute_message(user_socket, username, PRIVMSG)
+            sending_channel.distribute_message(user_socket, username, PRIVMSG, "PRIVMSG")
         else:
             self.addChannel(channel)
             sending_channel = self.channels[channel]
-            sending_channel.distribute_message(user_socket, username, PRIVMSG)
+            sending_channel.distribute_message(user_socket, username, PRIVMSG, "PRIVMSG")
 
     def list_names(self, user_socket, channel_name):
         if channel_name == "localhost":

@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f1be31b5-c8ef-4130-9be8-a27a3aa594f2" name="Default Changelist" comment="part and quit commands working :p" />
+    <list default="true" id="f1be31b5-c8ef-4130-9be8-a27a3aa594f2" name="Default Changelist" comment="class bot version">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/venv/Channel.py" beforeDir="false" afterPath="$PROJECT_DIR$/venv/Channel.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/venv/Server.py" beforeDir="false" afterPath="$PROJECT_DIR$/venv/Server.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/venv/bot.py" beforeDir="false" afterPath="$PROJECT_DIR$/venv/bot.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -10,7 +15,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="Ledits_with_bot_experiment" />
+        <entry key="$PROJECT_DIR$" value="Jedits" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -230,8 +235,8 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Python.Menu2" />
       <item itemvalue="Python.Menu" />
+      <item itemvalue="Python.Menu2" />
       <item itemvalue="Python.bot" />
     </list>
   </component>
@@ -357,11 +362,28 @@
       <option name="project" value="LOCAL" />
       <updated>1608567480423</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="class bot version">
+      <created>1608569724902</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1608569724902</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.History.Properties">
+    <option name="COLUMN_ID_ORDER">
+      <list>
+        <option value="Default.Root" />
+        <option value="Default.Author" />
+        <option value="Default.Date" />
+        <option value="Default.Subject" />
+      </list>
+    </option>
   </component>
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
@@ -389,6 +411,7 @@
     <MESSAGE value="trying to add luser" />
     <MESSAGE value="Can chat in channel (#test)" />
     <MESSAGE value="part and quit commands working :p" />
-    <option name="LAST_COMMIT_MESSAGE" value="part and quit commands working :p" />
+    <MESSAGE value="class bot version" />
+    <option name="LAST_COMMIT_MESSAGE" value="class bot version" />
   </component>
 </project>
