@@ -38,6 +38,13 @@ class Channel:
         self.socketList.append(client_socket)
         self.clientList.append(client)
 
+    def removeMember(self, client, client_socket):
+        # Remove member from all dicts/lists
+        del self.members_returns_socket[client]
+        del self.socket_returns_members[client_socket]
+        self.socketList.remove(client_socket)
+        self.clientList.remove(client)
+
     def addMember(self, client, nickname, client_address, hostname) -> None:
 
         if nickname in self.clientNicknames:
@@ -77,16 +84,6 @@ class Channel:
             else:
                 name_list = name
         return name_list
-
-    def remove_member(self, client):
-        print('Closed connection from: {}'.format(self.clientList[client]['msgData'].decode('utf-8')))
-
-        # Remove from list for socket.socket()
-        self.socketList.remove(client)
-
-        # Remove from our list of users
-        del self.clientList[client]
-
 
     # TODO make nick clashes
     def distribute_message(self, notified_socket, username, message):

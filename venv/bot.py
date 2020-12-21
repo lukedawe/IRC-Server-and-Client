@@ -22,8 +22,8 @@ def random_line(fname):
     try:
         line = random.choice(open(fname, 'r', encoding='cp850').readlines())
         return line
-
-    except IOError:
+    except IOError as e:
+        print(e)
         return "Facts file not found"
 
 

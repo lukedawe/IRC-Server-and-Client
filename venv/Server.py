@@ -158,10 +158,13 @@ class Server:
         self.sendMessage(client_socket, textToSend)
 
     def receiveMessage(self, clientSocket):
-        chunk = clientSocket.recv(MSGLEN).decode("UTF-8")
-        if chunk:
-            return chunk
-        else:
+        try:
+            chunk = clientSocket.recv(MSGLEN).decode("UTF-8")
+            if chunk:
+                return chunk
+            else:
+                return None
+        except: # Connection interrupted during transmission
             return None
 
     def sendMessage(self, tosocket, msg):
@@ -169,9 +172,10 @@ class Server:
         total_sent = 0
         while total_sent < len(msg):
             to_send = bytes(msg[total_sent:], "UTF-8")
-            sent = tosocket.send(to_send)
-            if sent == 0:
-                raise RuntimeError("socket connection broken")
+            try:
+                sent = tosocket.send(to_send)
+            except: # Connection dropped
+                return
             total_sent = total_sent + sent
 
     def refreshServer(self):
@@ -198,7 +202,7 @@ class Server:
                         # Remove from list for socket.socket()
                         # TODO we need to find the channel that the user is in so that we can remove the client from
                         #   those lists
-                        self.removeClient(self.sockets_returns_username[notified_socket], notified_socket, )
+                        self.removeClient(self.sockets_returns_username[notified_socket], notified_socket)
                         continue
 
                     print(message)
@@ -221,26 +225,29 @@ class Server:
     def addMember(self, client, clientaddress) -> None:
         self.members[client] = clientaddress
 
-    def removeClient(self, client_name, client_socket, channel):
+    def removeClient(self, client_name, client_socket):
         # print('Closed connection from: {}'.format(self.clientList[client]['msgData'].decode('utf-8')))
 
         # Remove from list for socket.socket()
-        self.socketList.remove(client)
+        self.socketList.remove(client_socket)
 
-        # Remove from our list of users
-        del self.clientList[client]
-
-        self.channels[channel].remove_member(self.usernames[client])
+        # Remove from our lists of users
+        del self.sockets_returns_username[client_socket]
+        del self.usernames_returns_sockets[client_name]
+        del self.nicknames[client_name]
 
     # TODO Private direct messaging
 
     def executeCommands(self, message, user_socket) -> bool:
+        print(message)
         if not message:
             return False
-
-        messagesArr = message.split()
-        command = messagesArr[0]
-        relatedData = messagesArr[1]
+        try:
+            messagesArr = message.split()
+            command = messagesArr[0]
+            relatedData = messagesArr[1]
+        except: # Split failed return
+            return False
         command_found = False
         if command == "JOIN":
             self.joinChannel(relatedData, user_socket)
@@ -255,15 +262,47 @@ class Server:
         elif command == "MODE":
             command_found = True
             pass
+        elif command == "NAMES":
+            command_found = True
+            users = ""
+            item = False
+            for peers in self.nicknames:
+                if not item:
+                    users += peers
+                    item = True
+                else:
+                    users += " " + peers
+
+            print(users)
+
+            message = ":" + self.name + " 353 " + self.sockets_returns_username[user_socket] + " @ " + relatedData + " :" + users + "\r\n"
+            self.sendMessage(user_socket, message)
+            pass
         elif command == "WHO":
             command_found = True
+
+            # OLD IRC VERSION BUT LETS DO IT ANYWAY? 352 WHO
+            if relatedData in self.nicknames:
+                # DUNNO message = ":" + self.name + " 352 " + self.sockets_returns_username[user_socket] + " :" + relatedData + "\r\n"
+                self.sendMessage(user_socket, message)
+            else:
+                message = ":" + self.name + " 315 " + self.sockets_returns_username[user_socket] + " " + relatedData + " :End of /WHO list\r\n"
+                self.sendMessage(user_socket, message)
             pass
         elif command == "PRIVMSG":
             print("sending private message")
-            channel = message.split('PRIVMSG', 1)[1].split(' ', 1)[1].split(' ', 1)[0]
-            PRIVMSG = message.split('PRIVMSG', 1)[1].split(':', 1)[1]
-            sending_channel = self.channels[channel]
-            sending_channel.distribute_message(user_socket, self.sockets_returns_username[user_socket], PRIVMSG)
+            if " " in message:
+                channel = message.split('PRIVMSG', 1)[1].split(' ', 1)[1].split(' ', 1)[0]
+            if ":" in message:
+                PRIVMSG = message.split('PRIVMSG', 1)[1].split(':', 1)[1]
+
+            if channel in self.channels:
+                sending_channel = self.channels[channel]
+                sending_channel.distribute_message(user_socket, self.sockets_returns_username[user_socket], PRIVMSG)
+            else:
+                self.addChannel(channel)
+                sending_channel = self.channels[channel]
+                sending_channel.distribute_message(user_socket, self.sockets_returns_username[user_socket], PRIVMSG)
 
         return command_found
 
