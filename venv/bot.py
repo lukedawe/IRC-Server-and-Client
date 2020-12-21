@@ -51,7 +51,7 @@ class Bot:
         self.irc.send(bytes("JOIN " + self.channel + "\n", "UTF-8"))
 
     # gets the name of users in channel
-    def get_names(self) -> list[str]:
+    def get_names(self) -> list:
         time.sleep(0.5)
         self.irc.send(bytes('NAMES ' + self.channel + '\r\n', "UTF-8"))
         getnamelist = self.irc.recv(2048).decode("UTF-8")
