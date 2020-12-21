@@ -67,6 +67,7 @@ def ping(append_to_ping):
 
 # Main method
 def main():
+    ran = False
     connect_to_server()
     time.sleep(1)
     # This code will run continuously
@@ -125,7 +126,9 @@ def main():
                 break
 
         if text.find("JOIN") and name == botnick!= 1:
-            irc.send(bytes("PRIVMSG " + channel + " :THE GINGER BOT IS HERE" + "\r\n", 'UTF-8'))
+            if(ran == -1):
+                ran = True
+                irc.send(bytes("PRIVMSG " + channel + " :THE GINGER BOT IS HERE" + "\r\n", 'UTF-8'))
 
 # This run the main method
 if __name__ == "__main__":

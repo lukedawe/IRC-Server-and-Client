@@ -18,7 +18,6 @@ MSGLEN = 2048
 class Server:
     # https://github.com/jrosdahl/miniircd/blob/master/miniircd line 789
     def __init__(self, ports=None, password="", channel="test", ipv6=ipaddress.ip_address('::1')) -> None:
-        self.members = {}
         if ports is None:
             ports = [6667]  # default port for server
 
@@ -40,8 +39,8 @@ class Server:
         self.sockets_returns_username: Dict[Socket, string] = {}  # username connected to socket
         self.nicknames: Dict[string, string] = {}  # nickname connected to username
         # self.threads: Dict[bytes, Channel] = {}
-        self.initialiseServer()
         self.start_time = time.time()
+        self.initialiseServer()
 
     def update_dicts(self, user_socket, name, nickname):
         self.socketList.append(user_socket)
@@ -205,6 +204,7 @@ class Server:
                         self.removeClient(self.sockets_returns_username[notified_socket], notified_socket)
                         continue
 
+                    print("------message------")
                     print(message)
 
                     command_found = self.executeCommands(message, notified_socket)
@@ -222,9 +222,6 @@ class Server:
                 #   those lists
                 self.removeClient(self.sockets_returns_username[notified_socket], notified_socket)
 
-    def addMember(self, client, clientaddress) -> None:
-        self.members[client] = clientaddress
-
     def removeClient(self, client_name, client_socket):
         # print('Closed connection from: {}'.format(self.clientList[client]['msgData'].decode('utf-8')))
 
@@ -239,7 +236,6 @@ class Server:
     # TODO Private direct messaging
 
     def executeCommands(self, message, user_socket) -> bool:
-        print(message)
         if not message:
             return False
         try:
@@ -330,3 +326,5 @@ _ircstring_translation = bytes.maketrans(
 
 def irc_lower(s: bytes) -> bytes:
     return s.translate(_ircstring_translation)
+
+# TODO
