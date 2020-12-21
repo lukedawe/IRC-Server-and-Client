@@ -1,8 +1,10 @@
 # Import required libraries: allows us to use built-in functions
+import os
 import socket
 import sys
 import random
 import time
+
 
 # Create basic variables to access server
 # Create a socket instance. This facilitates a bots connection to the server
@@ -42,7 +44,8 @@ class Bot:
         # Join the desired server and channel with the desired nickname (botnick)
         self.irc.send(bytes("NICK " + self.botnick + "\n", "UTF-8"))
         time.sleep(1)
-        self.irc.send(bytes("USER " + self.botnick + " " + self.botnick + " " + self.botnick + " " + self.botnick + "\n", "UTF-8"))
+        self.irc.send(bytes("USER " + self.botnick + " " + self.botnick + " " + self.botnick + " " + self.botnick + "\n"
+                            , "UTF-8"))
         time.sleep(1)
         self.irc.send(bytes("JOIN " + self.channel + "\n", "UTF-8"))
 
@@ -54,7 +57,7 @@ class Bot:
         namelist = getnamelist.split(self.channel, 1)[1].split(':', 1)[1].split('\r\n', 1)[0].split(' ')
         return namelist
 
-    #gets the current time
+    # gets the current time
     def get_time(self) -> str:
         current_local_time = time.localtime()
         current_time = time.strftime("%H:%M:%S", current_local_time)
@@ -67,7 +70,6 @@ class Bot:
     # runs bot
     def run_bot(self):
         ran = False
-        loops = 0
         self.connect_to_server()
         text = ""
         while 1:
@@ -97,8 +99,10 @@ class Bot:
                     print(self.get_names())
                     # Special case where bot chooses to slap itself
                     if slapee == self.botnick:
-                        self.irc.send(bytes("PRIVMSG " + chat + " :Self harm is not a joke, but here goes...\r\n", 'UTF-8'))
-                    self.irc.send(bytes("PRIVMSG " + chat + " :Slaps " + slapee + " around with a wet trout\r\n", 'UTF-8'))
+                        self.irc.send(
+                            bytes("PRIVMSG " + chat + " :Self harm is not a joke, but here goes...\r\n", 'UTF-8'))
+                    self.irc.send(
+                        bytes("PRIVMSG " + chat + " :Slaps " + slapee + " around with a wet trout\r\n", 'UTF-8'))
 
                 # If the user does '!fact' in the public channel, a fact will be private messaged to them.
                 # If the user sends a private message to the bot, the bot responds with a fact
@@ -130,6 +134,7 @@ class Bot:
                     self.irc.send(bytes("PRIVMSG " + self.channel + " :THE GINGER BOT IS HERE" + "\r\n", 'UTF-8'))
                     ran = True
 
+
 def main():
     bot = Bot()
     bot.run_bot()
@@ -137,12 +142,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
-
-

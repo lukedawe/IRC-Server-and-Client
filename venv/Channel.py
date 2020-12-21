@@ -1,10 +1,5 @@
-import string
 import threading
-from typing import Any, Collection, Dict, List, Optional, Sequence, Set
-# import Server
-from Client import Client
-import select
-
+from typing import Dict
 import socket
 
 HEADER_LENGTH = 10
@@ -16,7 +11,7 @@ class Channel:
     # https://github.com/jrosdahl/miniircd/blob/master/miniircd line 47
     threadID = None
 
-    def __init__(self, server: "Server", name: str, serverSocket) -> None:
+    def __init__(self, server, name: str, server_socket) -> None:
         self.server = server
         self.name = name
 
@@ -26,8 +21,8 @@ class Channel:
         self.nicknames_returns_usernames: Dict[str, str] = {}
 
         self.threadID = threading.get_ident()
-        self.serverSocket = serverSocket
-        self.socketList = [serverSocket]
+        self.serverSocket = server_socket
+        self.socketList = [server_socket]
         # stores all the usernames in the channel
         self.clientList = []
         # stores all the nick names in the server
@@ -45,7 +40,7 @@ class Channel:
         self.usernames_returns_nicknames[client] = nickname
         self.nicknames_returns_usernames[nickname] = client
 
-    def removeMember(self, client, client_socket):
+    def remove_member(self, client, client_socket):
         # Remove member from all dicts/lists
         del self.members_returns_socket[client]
         del self.socket_returns_members[client_socket]
@@ -54,14 +49,14 @@ class Channel:
         self.socketList.remove(client_socket)
         self.clientList.remove(client)
 
-    def addMember(self, client, nickname, client_address, hostname) -> bool:
+    def add_member(self, client, nickname, client_address, hostname) -> bool:
 
         if nickname in self.nicknames_returns_usernames:
             print("Nickname clash")
 
             # ERR_NICKNAMEINUSE (433)
-            textToSend = ":" + self.name + " 433 " + nickname + " :Nickname is already in use \r\n"
-            self.server.sendMessage(client_address, textToSend)
+            text_to_send = ":" + self.name + " 433 " + nickname + " :Nickname is already in use \r\n"
+            self.server.send_message(client_address, text_to_send)
 
             return False
 
@@ -74,20 +69,20 @@ class Channel:
 
         # TODO here, should the nickname or the username be shown?
         message = ":" + client + "!" + client + "@::1:6667" + " JOIN " + self.name + "\r\n"
-        self.server.sendMessage(client_address, message)
+        self.server.send_message(client_address, message)
 
         # RPL_NOTOPIC (331)
-        textToSend = ":" + hostname + " 331 " + client + " " + self.name + " :No topic is set\r\n"
-        self.server.sendMessage(client_address, textToSend)
+        text_to_send = ":" + hostname + " 331 " + client + " " + self.name + " :No topic is set\r\n"
+        self.server.send_message(client_address, text_to_send)
 
         # RPL_NAMREPLY (353)
         message = ":" + hostname + " 353 " + client + " = " + self.name + " :" + self.get_names(
             client) + " " + client + "\r\n"
-        self.server.sendMessage(client_address, message)
+        self.server.send_message(client_address, message)
 
         # RPL_ENDOFNAMES(366)
         message = ":" + hostname + " 366 " + client + " " + self.name + " :" + "End of NAMES list" + "\r\n"
-        self.server.sendMessage(client_address, message)
+        self.server.send_message(client_address, message)
 
         return True
 
@@ -111,27 +106,26 @@ class Channel:
         # textToSend = ":" + message + "!" + message + "@" + username + " PRIVMSG " + str(self.name) + " :" + \
         #             message  # NEED TO ENCODE AGAIN TO SEND
 
-        textToSend = "NO TEXT SENT" # Something bad has happened if this stays as this
+        text_to_send = "NO TEXT SENT"  # Something bad has happened if this stays as this
 
         if messagequery == "PRIVMSG":
-            textToSend = ":" + username + "!" + self.server.name + "@" + self.server.name + " " + messagequery + " " + str(
-                self.name) + " :" + \
-                         message
+            text_to_send = ":" + username + "!" + self.server.name + "@" + self.server.name + " " + messagequery + " " \
+                           + str(self.name) + " :" + message
         elif messagequery == "JOIN":
-            textToSend = ":" + username + "!~" + username + "@" + self.server.name + " " + messagequery + " " + str(
+            text_to_send = ":" + username + "!~" + username + "@" + self.server.name + " " + messagequery + " " + str(
                 self.name) + " :" + message
         elif messagequery == "PART":
-            textToSend = ":" + username + "!" + username + "@" + self.server.name + " " + messagequery + " " + str(
+            text_to_send = ":" + username + "!" + username + "@" + self.server.name + " " + messagequery + " " + str(
                 self.name) + " :" + message
         elif messagequery == "QUIT":
-            textToSend = ":" + username + "!" + username + "@" + self.server.name + " " + messagequery + " " + str(
+            text_to_send = ":" + username + "!" + username + "@" + self.server.name + " " + messagequery + " " + str(
                 self.name) + " :" + message
 
-        print(f'Sent Text: {textToSend}')
+        print(f'Sent Text: {text_to_send}')
 
         # Iterate over connected clients and broadcast message
         for client_socket in self.socketList:
             if client_socket != self.serverSocket:
                 # But don't sent it to sender
                 if client_socket != notified_socket:
-                    self.server.sendMessage(client_socket, textToSend)
+                    self.server.send_message(client_socket, text_to_send)
