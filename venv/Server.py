@@ -82,8 +82,11 @@ class Server:
         else:
 
             userinfo = user.split()
-            nickname = userinfo[1]
-            username = userinfo[3]
+            try:
+                nickname = userinfo[1]
+                username = userinfo[3]
+            except:
+                return False
 
             self.update_dicts(client_socket, username, nickname)
 
