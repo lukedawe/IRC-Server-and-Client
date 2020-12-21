@@ -17,7 +17,7 @@ MSGLEN = 2048
 
 class Server:
     # https://github.com/jrosdahl/miniircd/blob/master/miniircd line 789
-    def __init__(self, ports=None, password="", channel="test", ipv6=ipaddress.ip_address('::1')) -> None:
+    def __init__(self, ports=None, channel="test", ipv6=ipaddress.ip_address('::1')) -> None:
         if ports is None:
             ports = [6667]  # default port for server
 
@@ -203,8 +203,6 @@ class Server:
                     # If False, client disconnected, cleanup
                     if not message:
                         # Remove from list for socket.socket()
-                        # TODO we need to find the channel that the user is in so that we can remove the client from
-                        #   those lists
                         self.removeClient(self.sockets_returns_username[notified_socket], notified_socket)
                         continue
 
@@ -222,14 +220,12 @@ class Server:
                     """
             # It's not really necessary to have this, but will handle some socket exceptions just in case
             for notified_socket in exception_sockets:
-                # TODO we need to find the channel that the user is in so that we can remove the client from
-                #   those lists
                 self.removeClient(self.sockets_returns_username[notified_socket], notified_socket)
 
     def removeClient(self, client_name, client_socket):
         # print('Closed connection from: {}'.format(self.clientList[client]['msgData'].decode('utf-8')))
 
-        #REMOVE FROM ALL CHANNELS
+        # REMOVE FROM ALL CHANNELS
         for channelname, channel in self.channels.items():
             userlist = channel.return_name_list()
             if client_name in userlist:
@@ -237,7 +233,7 @@ class Server:
                 username = self.sockets_returns_username[client_socket]
                 nick = self.usernames_returns_nicknames[username]
                 server_channel = self.channels[channelname]
-                textToSend = nick + " HAS LEFT CHANNEL"
+                textToSend = nick + " HAS LEFT CHANNEL" + "\r\n"
 
                 server_channel.distribute_message(client_socket, username,
                                                   textToSend)  # Send leave message to make all users in channel aware
@@ -282,41 +278,33 @@ class Server:
             username = self.sockets_returns_username[user_socket]
             nick = self.usernames_returns_nicknames[username]
             server_channel = self.channels[channel]
-            textToSend = nick + " HAS LEFT CHANNEL"
+            textToSend = nick + " HAS LEFT CHANNEL" + "\r\n"
 
-            server_channel.distribute_message(user_socket, username, textToSend) # Send leave message to make all users in channel aware
+            server_channel.distribute_message(user_socket, username,
+                                              textToSend)  # Send leave message to make all users in channel aware
             server_channel.removeMember(username, user_socket)
 
             message = ":" + username + " PART " + channel + "\r\n"
             self.sendMessage(user_socket, message)
             command_found = True
         elif command == "NAMES":
+            command_found = True
             self.list_names(user_socket, relatedData)
-
         elif command == "WHO":
             command_found = True
-
             # OLD IRC VERSION BUT LETS DO IT ANYWAY? 352 WHO
-            if relatedData in self.usernames_returns_nicknames:
-                # DUNNO message = ":" + self.name + " 352 " + self.sockets_returns_username[user_socket] + " :" + relatedData + "\r\n"
-                self.sendMessage(user_socket, message)
-            else:
-                message = ":" + self.name + " 315 " + self.sockets_returns_username[
-                    user_socket] + " " + relatedData + " :End of /WHO list\r\n"
-                self.sendMessage(user_socket, message)
+            self.list_names(user_socket, relatedData)
         elif command == "PRIVMSG":
             self.private_messaging(message, user_socket)
         return command_found
 
-    # TODO this has to be made so that (if a channel doesn't exist) the channel is created,
-    #   if it does already exist, the client has to be entered into it.
     def joinChannel(self, channel, client_socket):
         try:
             username = self.sockets_returns_username[client_socket]
             nick = self.usernames_returns_nicknames[username]
 
             server_channel = self.channels[channel]
-            textToSend = nick + " HAS JOINED THE CHANNEL"
+            textToSend = nick + " HAS JOINED THE CHANNEL" + "\r\n"
 
             # Send join message to make all users in channel aware
             server_channel.distribute_message(client_socket, username, textToSend)
@@ -384,3 +372,5 @@ class Server:
             self.sendMessage(user_socket, message)
 
     # if the username and the nickname isn't the same...
+
+    # TODO when the bot sends two messages at once, only one appears

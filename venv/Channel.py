@@ -113,7 +113,7 @@ class Channel:
 
         textToSend = ":" + username + "!" + self.server.name + "@" + self.server.name + " PRIVMSG " + str(
             self.name) + " :" + \
-                     message + " \r\n"
+                     message
 
         print(f'Sent Text: {textToSend}')
 

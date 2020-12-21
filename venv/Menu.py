@@ -13,7 +13,7 @@ def main():
 def menu():
     choice = input("""
                       A: Create server
-                      B: Add client
+                      B: Add bot
                       C: Test server
                       Q: Quit
 
@@ -34,16 +34,6 @@ def menu():
 
 
 def createServer():
-    port = input("Please enter the port for the server")
-    password = input("Please enter the password for the server")
-    password = hashlib.sha224(str.encode(password)).hexdigest()
-    channel = input("Please enter the channel for the server")
-    address = input("Please enter the IP address for the server")
-    try:
-        ipv6 = ipaddress.ip_address(address)
-    except:
-        ipv6 = ""
-
     server = Server()
 
 
