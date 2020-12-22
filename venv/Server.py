@@ -14,13 +14,16 @@ MSGLEN = 2048
 
 class Server:
     # https://github.com/jrosdahl/miniircd/blob/master/miniircd line 789
-    def __init__(self, ports=None, ipv6=ipaddress.ip_address('::1')) -> None:
+    def __init__(self, ports=None, ipv6="fc00:1337::17") -> None:
+
+        # allows for the use of a custom port, if there is none given then use the default port
         if ports is None:
             ports = [6667]  # default port for server
+        else:
+            ports = [int(ports)]
 
         self.name = socket.gethostname()
-        self.ipv6 = socket.getaddrinfo(self.name, None, proto=socket.IPPROTO_TCP)[0][4][0]
-
+        self.ipv6 = ipv6
         self.version_number = 0.6
         self.created = datetime.today().strftime("at %X on %d %B, %Y")
 

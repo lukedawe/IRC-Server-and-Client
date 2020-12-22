@@ -16,7 +16,7 @@ class Bot:
         # self.irc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.irc = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
         # self.server = "chat.freenode.net"
-        self.server = "::1"
+        self.server = "fc00:1337::17"
         # self.channel = "##testchanneloneagz"
         self.channel = "#test"
         self.botnick = "Ginger"
