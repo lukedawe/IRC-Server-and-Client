@@ -23,7 +23,6 @@ class Server:
             ports = [int(ports)]
 
         self.name = socket.gethostname()
-
         self.ipv6 = ipv6
         # self.ipv6 = "::1"
 
