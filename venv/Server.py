@@ -25,7 +25,6 @@ class Server:
         self.created = datetime.today().strftime("at %X on %d %B, %Y")
 
         self.ports = ports
-        self.ipv6 = ipv6
         self.serverSocket = Socket(family=socket.AF_INET6)
 
         # this means that you can reuse addresses for reconnection
