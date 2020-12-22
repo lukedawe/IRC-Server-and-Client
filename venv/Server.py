@@ -23,8 +23,8 @@ class Server:
             ports = [int(ports)]
 
         self.name = socket.gethostname()
-        self.ipv6 = ipv6
-        # self.ipv6 = "::1"
+        # self.ipv6 = ipv6
+        self.ipv6 = "::1"
 
         self.version_number = 0.6
         self.created = datetime.today().strftime("at %X on %d %B, %Y")

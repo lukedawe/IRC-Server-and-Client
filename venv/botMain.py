@@ -14,8 +14,8 @@ class Bot:
         # self.irc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.irc = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
         # self.server = "chat.freenode.net"
-        self.server = "fc00:1337::17"
-        # self.server = "::1"
+        # self.server = "fc00:1337::17"
+        self.server = "::1"
         # self.channel = "##testchanneloneagz"
         self.channel = "#test"
         self.botnick = "Ginger"
@@ -24,7 +24,8 @@ class Bot:
     # This function will take a random line from the facts.txt file and return it.
     def random_line(self, fname) -> str:
         here = os.path.dirname(os.path.abspath(__file__))
-        print(here)
+        fname = here + "\\" + fname
+        print(fname)
         try:
             line = random.choice(open(fname, 'r', encoding='cp850').readlines())
             return line
