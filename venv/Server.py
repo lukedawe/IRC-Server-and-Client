@@ -19,7 +19,7 @@ class Server:
             ports = [6667]  # default port for server
 
         self.name = socket.gethostname()
-        self.ipv6 = socket.getaddrinfo(self.name, None, socket.AF_INET6)[0][4][0]
+        self.ipv6 = socket.getaddrinfo(self.name, None, proto=socket.IPPROTO_TCP)[0][4][0]
 
         self.version_number = 0.6
         self.created = datetime.today().strftime("at %X on %d %B, %Y")
