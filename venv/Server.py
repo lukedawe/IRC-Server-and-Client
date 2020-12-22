@@ -298,6 +298,12 @@ class Server:
         elif command == "PRIVMSG":
             command_found = True
             self.private_messaging(message, user_socket)
+        elif command == "NICK":
+            print("Nickname was meant to be set here")
+            return False
+        elif command == "USER":
+            print("Username was meant to be set here")
+            return False
         return command_found
 
     def join_channel(self, channel, client_socket):
