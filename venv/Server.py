@@ -23,7 +23,10 @@ class Server:
             ports = [int(ports)]
 
         self.name = socket.gethostname()
+
         self.ipv6 = ipv6
+        # self.ipv6 = "::1"
+
         self.version_number = 0.6
         self.created = datetime.today().strftime("at %X on %d %B, %Y")
 
@@ -35,12 +38,10 @@ class Server:
 
         self.socketList = [self.serverSocket]
         self.channels: Dict[str, Channel] = {}  # key: irc_lower(channelname)
-        # self.clients: Dict[Socket, Client] = {}
         self.usernames_returns_sockets: Dict[str, Socket] = {}  # returns the socket for the user
         self.sockets_returns_username: Dict[Socket, str] = {}  # username connected to socket
         self.usernames_returns_nicknames: Dict[str, str] = {}  # nickname connected to username
-        self.nicknames_returns_usernames: Dict[str, str] = {}
-        # self.threads: Dict[bytes, Channel] = {}
+        self.nicknames_returns_usernames: Dict[str, str] = {}  # username connected to nickname
         self.start_time = time.time()
         self.initialise_server()
 
@@ -53,22 +54,25 @@ class Server:
         self.nicknames_returns_usernames[nickname] = name
 
     # creates a channel with a set name
-    def add_channel(self, name="#test") -> Channel:
+    def add_channel(self, name="#test"):
         name = name[0:63]
-        channel = Channel(self, name, self.serverSocket)
-        self.serverSocket.listen()
-        self.channels[name] = channel
+
+        if name[0] == "#":
+            channel = Channel(self, name, self.serverSocket)
+            self.channels[name] = channel
+        else:
+            return None
+
         return channel
 
     def initialise_server(self):
-        # address = socket.getaddrinfo(str(self.ipv6), self.ports[0], proto=socket.IPPROTO_TCP)[0][4][0]
-        # address = [addr for addr in socket.getaddrinfo(self.ipv6, None) if socket.AF_INET6 == addr[0]]
-
-        self.serverSocket.bind((str(self.ipv6), self.ports[0]))
-        self.serverSocket.listen()
-
+        # bind the server ipv6 with the port and then listen to that socket
+        try:
+            self.serverSocket.bind((str(self.ipv6), self.ports[0]))
+            self.serverSocket.listen()
+        except:
+            print("A binding error occurred, please make sure that you are binding a valid ipv6 address")
         self.add_channel()
-
         self.refresh_server()
 
     def init_reg(self) -> bool:
@@ -84,7 +88,7 @@ class Server:
         if not (cap and user):
             return False
         else:
-
+            # split the user information when a space occurs so that we get an array of information
             userinfo = user.split()
             try:
                 nickname = userinfo[1]
@@ -95,6 +99,7 @@ class Server:
             self.update_dicts(client_socket, username, nickname)
 
             # The following is according to https://modern.ircdocs.horse/#rplwelcome-001
+            # Send the client the appropriate messages
 
             # RPL_WELCOME (001)
             text_to_send = ":" + self.name + " 001 " + nickname + " :Welcome to our IRC Server - " + nickname + "[!" + \
@@ -115,10 +120,6 @@ class Server:
                 self.version_number) + "\r\n"
             self.send_message(client_socket, text_to_send)
 
-            # RPL_ISUPPORT (005)
-            # textToSend = ":" + self.name + " 005 " + nickname + "CHARSET=ascii :are supported by this server \r\n"
-            # self.sendMessage(client_socket, textToSend)
-
             # ---- LUSER ----
             self.l_user(nickname, client_socket)
 
@@ -127,6 +128,7 @@ class Server:
 
             return True
 
+    # send the client the message of the day
     def motd(self, nickname, client_socket):
         # RPL_MOTDSTART (375)
         text_to_send = ":" + self.name + " 375 " + nickname + " :- +++ Message of the day +++ - \r\n"
@@ -140,6 +142,7 @@ class Server:
         text_to_send = ":" + self.name + " 376 " + nickname + " :End of /MOTD command. \r\n"
         self.send_message(client_socket, text_to_send)
 
+    # send the client the LUSER information, this concerns how many clients and channels there are
     def l_user(self, nickname, client_socket):
         # RPL_LUSERCLIENT (251)
         text_to_send = ":" + self.name + " 251 " + nickname + " :There are " + str(
@@ -163,9 +166,10 @@ class Server:
             len(self.usernames_returns_nicknames)) + " clients and 0 servers \r\n"
         self.send_message(client_socket, text_to_send)
 
+    # receives data from the client
     def receive_message(self, client_socket):
         try:
-            chunk = client_socket.recv(MSGLEN).decode("UTF-8")
+            chunk = client_socket.recv(MSGLEN).decode("UTF-8")  # receives data from the socket of the client
             if chunk:
                 return chunk
             else:
@@ -173,8 +177,8 @@ class Server:
         except:  # Connection interrupted during transmission
             return None
 
+    # sends the message chunk by chunk
     def send_message(self, to_socket, msg):
-        # print("SENT CHUNK: " + msg)
         total_sent = 0
         while total_sent < len(msg):
             to_send = bytes(msg[total_sent:], "UTF-8")
@@ -185,12 +189,10 @@ class Server:
             total_sent = total_sent + sent
 
     def refresh_server(self):
-        while True:
-
+        while True:  # constantly refreshes the server, checking for new information on the socket
             read_sockets, _, exception_sockets = select.select(self.socketList, [], self.socketList)
 
-            # Iterate over notified sockets
-            for notified_socket in read_sockets:
+            for notified_socket in read_sockets:  # Iterate over notified sockets
 
                 # If notified socket is a server socket - new connection, accept it
                 if notified_socket == self.serverSocket:
@@ -199,7 +201,6 @@ class Server:
 
                 # Else existing socket is sending a message
                 else:
-
                     # Receive message
                     message = self.receive_message(notified_socket)
 
@@ -217,14 +218,6 @@ class Server:
                     if not command_found:
                         print("Command not found, an error may have occurred :(")
 
-                    # We now want to see what channel the client is in, and send their message to the rest of the
-                    #   clients in that channel.
-
-                    """
-                    print(
-                        f'Received message from {user["msgData"].decode("utf-8")}: {message["msgData"].decode("utf-8")}'
-                        )
-                    """
             # It's not really necessary to have this, but will handle some socket exceptions just in case
             for notified_socket in exception_sockets:
                 self.remove_client(self.sockets_returns_username[notified_socket], notified_socket)
@@ -323,10 +316,13 @@ class Server:
             server_channel.add_member(username, nick, client_socket, self.name)
         except:
             server_channel = self.add_channel(channel)
-            username = self.sockets_returns_username[client_socket]
-            server_channel.add_member(self.sockets_returns_username[client_socket],
-                                      self.usernames_returns_nicknames[username],
-                                      client_socket, self.name)
+            if server_channel:
+                username = self.sockets_returns_username[client_socket]
+                server_channel.add_member(self.sockets_returns_username[client_socket],
+                                          self.usernames_returns_nicknames[username],
+                                          client_socket, self.name)
+            else:
+                print("Server name was not accepted")
 
     def private_messaging(self, message, user_socket):
         print("sending private message")
@@ -350,12 +346,12 @@ class Server:
         else:
             return
 
+        # finds the channel, if the channel does not exist, create a new channel
         if channel in self.channels:
             sending_channel = self.channels[channel]
             sending_channel.distribute_message(user_socket, username, priv_msg, "PRIVMSG")
         else:
-            self.add_channel(channel)
-            sending_channel = self.channels[channel]
+            sending_channel = self.add_channel(channel)
             sending_channel.distribute_message(user_socket, username, priv_msg, "PRIVMSG")
 
     def list_names(self, user_socket, channel_name):
@@ -377,7 +373,3 @@ class Server:
             message = ":" + self.name + " 353 " + username + " = " + channel_name + " :" + channel.get_names(
                 username) + "\r\n"
             self.send_message(user_socket, message)
-
-    # if the username and the nickname isn't the same...
-
-    # TODO when the bot sends two messages at once, only one appears

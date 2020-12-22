@@ -4,6 +4,10 @@ import threading
 from Server import Server
 from bot import Bot
 
+IPV6_MESSAGE = "Please enter the port you wish to use or press enter to accept default (default is 6667)"
+PORT_MESSAGE = "Please enter the ipv6 you wish to use or press enter to accept default (default is fc00:1337::17)"
+THREADING_ERROR = "Threading error occurred, don't create two of the same thread at once!"
+
 
 def main():
     menu()
@@ -22,12 +26,12 @@ def menu():
     if choice == "A" or choice == "a":
         print("Creating server")
         try:
-            port = input("Please enter the port you wish to use (default is 6667)")
-            ipv6 = input("Please enter the ipv6 you wish to use (default is fc00:1337::17)")
+            port = input(PORT_MESSAGE)
+            ipv6 = input(IPV6_MESSAGE)
             x = threading.Thread(target=create_server, args=(port, ipv6))
             x.start()
         except:
-            print("Threading error occurred, don't create two servers at once!")
+            print(THREADING_ERROR)
             menu()
     elif choice == "B" or choice == "b":
         print("Adding bot to the server")
@@ -35,19 +39,19 @@ def menu():
             y = threading.Thread(target=create_bot, args=())
             y.start()
         except:
-            print("Threading error occurred, don't create two bots at once!")
+            print(THREADING_ERROR)
             menu()
     elif choice == "C" or choice == "c":
         print("Creating a server and a bot")
         try:
-            port = input("Please enter the port you wish to use (default is 6667)")
-            ipv6 = input("Please enter the ipv6 you wish to use (default is fc00:1337::17)")
+            port = input(PORT_MESSAGE)
+            ipv6 = input(IPV6_MESSAGE)
             x = threading.Thread(target=create_server, args=(port, ipv6))
             x.start()
             y = threading.Thread(target=create_bot, args=())
             y.start()
         except:
-            print("Threading error occurred, don't create two bots at once!")
+            print(THREADING_ERROR)
             menu()
     elif choice == "Q" or choice == "q":
         sys.exit()
