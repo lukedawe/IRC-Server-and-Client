@@ -23,8 +23,8 @@ class Server:
             ports = [int(ports)]
 
         self.name = socket.gethostname()
-        # self.ipv6 = ipv6
-        self.ipv6 = "::1"
+        self.ipv6 = ipv6
+        # self.ipv6 = "::1"
 
         self.version_number = 0.6
         self.created = datetime.today().strftime("at %X on %d %B, %Y")
@@ -346,9 +346,10 @@ class Server:
                 recipient_username = self.nicknames_returns_usernames[recipient_nickname]
                 recipient_socket = self.usernames_returns_sockets[recipient_username]
                 message_contents = message.split(':', 1)[1]
-                message_to_send = ":" + recipient_nickname + "!" + username + " PRIVMSG " + recipient_nickname + " :" + \
+                message_to_send = ":" + recipient_nickname + "!" + username + "@" + self.name + " PRIVMSG " + recipient_nickname + " :" + \
                                   message_contents
                 self.send_message(recipient_socket, message_to_send)
+                return
         else:
             return
 
@@ -357,15 +358,18 @@ class Server:
         else:
             return
 
-        # finds the channel, if the channel does not exist, create a new channel
-        if channel in self.channels:
-            sending_channel = self.channels[channel]
-            print("SENDING MESSAGE TO CHANNEL: " + channel)
-            sending_channel.distribute_message(user_socket, username, priv_msg, "PRIVMSG")
-        else:
-            print("SENDING MESSAGE TO CHANNEL: " + channel)
-            sending_channel = self.add_channel(channel)
-            sending_channel.distribute_message(user_socket, username, priv_msg, "PRIVMSG")
+        try:
+            # finds the channel, if the channel does not exist, create a new channel
+            if channel in self.channels:
+                sending_channel = self.channels[channel]
+                print("SENDING MESSAGE TO CHANNEL: " + channel)
+                sending_channel.distribute_message(user_socket, username, priv_msg, "PRIVMSG")
+            else:
+                print("SENDING MESSAGE TO CHANNEL: " + channel)
+                sending_channel = self.add_channel(channel)
+                sending_channel.distribute_message(user_socket, username, priv_msg, "PRIVMSG")
+        except:
+            return
 
     def list_names(self, user_socket, channel_name):
         if channel_name == "localipv6":

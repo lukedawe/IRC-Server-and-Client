@@ -8,16 +8,14 @@ import time
 
 # Create basic variables to access server
 # Create a socket instance. This facilitates a bots connection to the server
-
-
 class Bot:
 
     def __init__(self):
         # self.irc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.irc = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
         # self.server = "chat.freenode.net"
-        # self.server = "fc00:1337::17"
-        self.server = "::1"
+        self.server = "fc00:1337::17"
+        # self.server = "::1"
         # self.channel = "##testchanneloneagz"
         self.channel = "#test"
         self.botnick = "Ginger"
