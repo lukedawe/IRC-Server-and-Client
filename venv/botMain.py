@@ -135,3 +135,10 @@ class Bot:
                 if ran != 1:
                     self.irc.send(bytes("PRIVMSG " + self.channel + " :THE GINGER BOT IS HERE" + "\r\n", 'UTF-8'))
                     ran = True
+
+
+def main():
+    Bot()
+
+
+main()

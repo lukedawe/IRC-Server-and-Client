@@ -23,8 +23,8 @@ class Server:
             ports = [int(ports)]
 
         self.name = socket.gethostname()
-        self.ipv6 = ipv6
-        # self.ipv6 = "::1"
+        # self.ipv6 = ipv6
+        self.ipv6 = "::1"
 
         self.version_number = 0.6
         self.created = datetime.today().strftime("at %X on %d %B, %Y")
@@ -81,19 +81,24 @@ class Server:
 
         client_socket, client_address = self.serverSocket.accept()
         # Client should send his name right away, receive it
-        cap = self.receive_message(client_socket)
+        nick = self.receive_message(client_socket)
         user = self.receive_message(client_socket)
+        # split the user information when a space occurs so that we get an array of information
+        userinfo = user.split()
 
-        if not (cap and user):
+        if not (nick and user):
             return False
         else:
-            # split the user information when a space occurs so that we get an array of information
-            userinfo = user.split()
-            try:
+            nickinfo = nick.split()
+            if nickinfo[0] == "CAP":
                 nickname = userinfo[1]
                 username = userinfo[3]
-            except:
-                return False
+            else:
+                nickname = nickinfo[1]
+                username = userinfo[1]
+
+            print(nickinfo)
+            print(userinfo)
 
             self.update_dicts(client_socket, username, nickname)
 
@@ -248,6 +253,7 @@ class Server:
         del self.usernames_returns_nicknames[client_name]
 
     def execute_commands(self, message, user_socket) -> bool:
+        print("RECIEVED MESSAGE: "+message)
         if not message:
             return False
         try:
@@ -271,7 +277,7 @@ class Server:
         elif command == "PONG":
             command_found = True
         elif command == "MODE":
-            command_found = True
+            return False
         elif command == "PART":
             channel = related_data
             username = self.sockets_returns_username[user_socket]
@@ -340,7 +346,7 @@ class Server:
                 recipient_username = self.nicknames_returns_usernames[recipient_nickname]
                 recipient_socket = self.usernames_returns_sockets[recipient_username]
                 message_contents = message.split(':', 1)[1]
-                message_to_send = ":" + username + "!" + self.name + " PRIVMSG " + recipient_nickname + " :" + \
+                message_to_send = ":" + recipient_nickname + "!" + username + " PRIVMSG " + recipient_nickname + " :" + \
                                   message_contents
                 self.send_message(recipient_socket, message_to_send)
         else:
@@ -360,7 +366,7 @@ class Server:
             sending_channel.distribute_message(user_socket, username, priv_msg, "PRIVMSG")
 
     def list_names(self, user_socket, channel_name):
-        if channel_name == "localhost":
+        if channel_name == "localipv6":
             users = ""
             item = False
             for peers in self.usernames_returns_nicknames:
