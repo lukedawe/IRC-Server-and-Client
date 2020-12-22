@@ -319,12 +319,12 @@ class Server:
             server_channel = self.channels[channel]
             text_to_send = nick + " HAS JOINED THE CHANNEL" + "\r\n"
 
-            # Send join message to make all users in channel aware
-            server_channel.distribute_message(client_socket, username, text_to_send, "JOIN")
-
             server_channel = self.channels[channel]
             username = self.sockets_returns_username[client_socket]
             server_channel.add_member(username, nick, client_socket, self.name)
+
+            # Send join message to make all users in channel aware
+            server_channel.distribute_message(client_socket, username, text_to_send, "JOIN")
         except:
             server_channel = self.add_channel(channel)
             if server_channel:
@@ -360,8 +360,10 @@ class Server:
         # finds the channel, if the channel does not exist, create a new channel
         if channel in self.channels:
             sending_channel = self.channels[channel]
+            print("SENDING MESSAGE TO CHANNEL: " + channel)
             sending_channel.distribute_message(user_socket, username, priv_msg, "PRIVMSG")
         else:
+            print("SENDING MESSAGE TO CHANNEL: " + channel)
             sending_channel = self.add_channel(channel)
             sending_channel.distribute_message(user_socket, username, priv_msg, "PRIVMSG")
 

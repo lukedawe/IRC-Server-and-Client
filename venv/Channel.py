@@ -14,6 +14,7 @@ class Channel:
     def __init__(self, server, name: str, server_socket) -> None:
         self.server = server
         self.name = name
+        print("CHANNEL NAME:" + self.name)
 
         self.members_returns_socket: Dict[str, Socket] = {}
         self.socket_returns_members: Dict[Socket, str] = {}
@@ -35,7 +36,7 @@ class Channel:
         self.socket_returns_members[client_socket] = client
         self.socketList.append(client_socket)
         # TODO should the usernames be stored here or the nicknames?
-        self.clientList.append(client)
+        self.clientList.append(nickname)
 
         self.usernames_returns_nicknames[client] = nickname
         self.nicknames_returns_usernames[nickname] = client
@@ -63,6 +64,7 @@ class Channel:
 
         self.update_dictionaries(client, client_address, nickname)
 
+        print("LIST OF CLIENTS")
         print(self.clientList)
         print("Member joined channel: " + self.name)
 
@@ -102,7 +104,8 @@ class Channel:
     def distribute_message(self, notified_socket, username, message, message_query):
         print(username)
         print(self.usernames_returns_nicknames)
-        nickname = self.usernames_returns_nicknames[username]
+        if username in self.usernames_returns_nicknames:
+            nickname = self.usernames_returns_nicknames[username]
 
         # Send user and message (both with their headers) We are reusing here message header sent
         # by sender, and saved username header send by user when he connected client_socket.send(
@@ -113,7 +116,7 @@ class Channel:
         text_to_send = "NO TEXT SENT"  # Something bad has happened if this stays as this
 
         if message_query == "PRIVMSG":
-            text_to_send = ":" + nickname + "!" + self.server.name + "@" + self.server.name + " " + message_query + " " \
+            text_to_send = ":" + nickname + "!" + username + "@" + self.server.name + " " + message_query + " " \
                            + str(self.name) + " :" + message
         elif message_query == "JOIN":
             text_to_send = ":" + nickname + "!~" + username + "@" + self.server.name + " " + message_query + " " + str(
